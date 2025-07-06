@@ -2,12 +2,13 @@ import pandas as pd
 import os
 import datetime
 from erreurs import IncorrectDate,Duplicates
-
+from decimal import Decimal #pour virer les problèmes d'arrondi de virgule flottante
 def convertisseur(s):
     if pd.isna(s): #on n'y touche pas
         return s
-    if type(s)==float:
+    if type(s)==Decimal:
         return s
+    s=str(s) #on s'assure que c'est un string pour éviter des bugs
     if "-" in s:
             signe=-1
     else:
@@ -16,11 +17,15 @@ def convertisseur(s):
         s=s[1:]
         
     s=s.replace(",",".") #on ne peut pas convertir des nombres à virgules avec float, il faut des .
-    return signe*float(s)
+    return signe*Decimal(s)
 
 
 def importer(fichier,ind): #chemin du fichier
-    df=pd.read_csv(fichier,sep=";",index_col=ind)
+    try:
+        df=pd.read_csv(fichier,sep=";",index_col=ind)
+    except Exception as e:
+        print("Erreur lors de l'ouverture du fichier: ", e)
+        return pd.DataFrame()
     df["Date de comptabilisation"]=pd.to_datetime(df["Date de comptabilisation"],errors='coerce',format='%d/%m/%Y')
     df["Date de valeur"]=pd.to_datetime(df["Date de valeur"],errors='coerce',format='%d/%m/%Y')
     
@@ -42,8 +47,9 @@ def importPasse():
     dfpasses=[]
     for dossier in os.listdir("./exports"):
         for sousDos in os.listdir(f"./exports/{dossier}"):
+            if "." in sousDos: continue #on ignore les éventuels fichiers présents ici
             for fichier in os.listdir(f"./exports/{dossier}/{sousDos}"):
-                if ".csv" in fichier:
+                if ".csv" in fichier: #on garde seulement les fichiers csv
                     dfpasses.append(importer(f"./exports/{dossier}/{sousDos}/{fichier}",0))
 
     
@@ -55,8 +61,14 @@ def importPasse():
     return df,dfDoublon
 
 def concatener(liste_df:list[pd.DataFrame]):
-    for df in liste_df:
+    liste_del=[]
+    for i in range(len(liste_df)) :
+        df=liste_df[i]
         df.reset_index(inplace=True)
+        if df.empty or df.isna().all(axis=None):
+            liste_del.append(i) #si le df est vide ou alors contient que des NaN, on le marque pour suppression
+    for i in liste_del[::-1]: #on inverse pour pas changé l'index des futurs df à supprimer
+        liste_df.pop(i) #on supprime les df marqués
     dftemp=pd.concat(liste_df,axis=0,ignore_index=True,join='outer')
     doublons=dftemp.duplicated(keep=False) #subset = None quand on vérifie les duplications sur l'index
     df_doublons=dftemp[doublons]
