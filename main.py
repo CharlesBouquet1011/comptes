@@ -3,6 +3,7 @@ import os
 import datetime
 from erreurs import IncorrectDate,Duplicates
 from decimal import Decimal #pour virer les problèmes d'arrondi de virgule flottante
+import analyse as a
 def convertisseur(s):
     if pd.isna(s): #on n'y touche pas
         return s
@@ -154,7 +155,9 @@ def Export(df:pd.DataFrame):
     return liste_df_Mois
 
 def p1(fichier):
-    initialisation()
+    """
+    importe et met en forme le fichier dans l'archive
+    """
 
     df1=importer(fichier,3)
     dfpasse,dfpasseDoublons=importPasse()
@@ -162,11 +165,41 @@ def p1(fichier):
     dftot,doublons=concatener([df1,dfpasse])
     Export(dftot)
 
+def interfaceConsole():
+    ans=input("Voulez vous importer des fichiers pour traitement futur ? \n")
+    if ans.lower()=="oui": #import de fichiers
+        print("Mettez le fichier dans le dossier 'donnees_a_traiter'")
+        nom=input("Rentrez le nom du fichier CSV sans l'extension \n")
+        chemin=f"./donnees_a_traiter/{nom}.csv"
+        p1(chemin)
+        print("vos fichiers séparés par mois sont maintenant dans ./exports, vous pouvez désormais les traiter")
+    
+    
+    ans=input("Voulez vous Analyser vos fichiers ? (oui/non) Le traitement nécessite d'avoir préalablement importé des fichiers\n")
+    if ans.lower()=="oui": #analyse des fichiers exportés préalablement
+        if len(os.listdir("./exports"))==0:
+            print("Veuillez préalablement importer des fichiers")
+            return False #erreur
+        ans=input("Voulez vous analyser par mois ou par année ? (mois/annee) \n")
+        if ans.lower()=="mois":
+            mois=input("Choisissez le mois (sous la forme mm_YYYY) \n")
+            mois,annee=mois.split("_")
+            if not a.AnalyseMois(annee,mois):
+                print("une erreur inconnue est survenue, veuillez réessayer")
+                return False
+            print(f"vous retrouverez les bilans, depenses et gains du mois {mois}_{annee} dans le dossier ./exports/{annee}/{mois}_{annee}")
+        elif ans.lower()=="annee":
+            annee=input("Choisissez l'année (sous la forme YYYY) \n")
 
-
+            if not a.AnalyseAnnee(annee):
+                print("une erreur inconnue est survenue, veuillez réessayer")
+                return False
+            print(f"Vous retrouverez les bilans, depenses et gains de l'année{annee} dans le fichier ./exports{annee}")
+    return True
 
 def main():
-    p1("donnees_a_traiter\\05072025_949414.csv")
+    initialisation()
+    interfaceConsole()
 
 
     
