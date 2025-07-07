@@ -18,17 +18,17 @@ def AnalyseAnnee(annee:str)->bool:
 
     """
     dfs=[]
-    if annee not in os.listdir("./exports"):
+    if annee not in os.listdir("../exports"):
         print("Dossier inexistant")
         return False
-    for dossier in os.listdir(f"./exports/{annee}"):
+    for dossier in os.listdir(f"../exports/{annee}"):
         if "." in dossier: continue #on ignore les éventuels fichiers présents ici
-        for fichier in os.listdir(f"./exports/{annee}/{dossier}"):
+        for fichier in os.listdir(f"../exports/{annee}/{dossier}"):
             if ".csv" in fichier: #on garde que les csv
-                dfs.append(m.importer(f"./exports/{annee}/{dossier}/{fichier}",0))
+                dfs.append(m.importer(f"../exports/{annee}/{dossier}/{fichier}",0))
     
     df,dfD=m.concatener(dfs)
-    chemin=f"./exports/{annee}"
+    chemin=f"../exports/{annee}"
     traitement(df,chemin,annee,"Annee")
     return True
 
@@ -73,17 +73,17 @@ def AnalyseMois(Annee:str,Mois:str)->bool: #annee YYYY mois mm
     affiche et sauvegarde des graphiques des dépenses par jour, crédits par jour et bilan (crédit - dépenses) par jour
     """
     MoisAnnee=f"{Mois}_{Annee}"
-    fichier=f"./exports/{Annee}/{MoisAnnee}/{MoisAnnee}.csv"
+    fichier=f"../exports/{Annee}/{MoisAnnee}/{MoisAnnee}.csv"
     try:
         df=m.importer(fichier,0) #ce df est le bilan débit + recettes
     except Exception as e:
         print(e)
         return False
-    chemin=f"./exports/{Annee}/{MoisAnnee}"
+    chemin=f"../exports/{Annee}/{MoisAnnee}"
     traitement(df,chemin,MoisAnnee,"Mois")
     return True
 
-def filtre(df:pd.DataFrame,libelle:str,mois=None)->pd.DataFrame:
+def filtreparLibelle(df:pd.DataFrame,libelle:str,mois=None)->pd.DataFrame:
     """
     on affiche que les résultats du df qui correspondent au libelle et au mois s'il est précisé
     recherche large (le libellé correspond en partie à la ligne du dataframe)
@@ -94,6 +94,16 @@ def filtre(df:pd.DataFrame,libelle:str,mois=None)->pd.DataFrame:
         mois=datetime.datetime.strptime("%m_%Y")
         res=res[res["Date de comptabilisation"]==mois]
     return res
+
+def filtre(df:pd.DataFrame,criteres:dict[tuple[str,bool]]):
+    for crit,tuple in criteres.items():
+        val,strict=tuple
+        if strict:
+            df=df[df[crit]==val]
+        else:
+            df=df[df[crit.str.contains(val,na=False)]]
+    return df
+
 
 if __name__=="__main__":
     AnalyseAnnee("2025")

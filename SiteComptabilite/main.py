@@ -35,23 +35,23 @@ def importer(fichier,ind): #chemin du fichier
     return df
 
 def initialisation():
-    os.makedirs("./doublons",exist_ok=True)
-    os.makedirs("donnees_a_traiter",exist_ok=True)
-    os.makedirs("DatesIncorrectes",exist_ok=True)
-    os.makedirs("./exports",exist_ok=True)
+    os.makedirs("../doublons",exist_ok=True)
+    os.makedirs("../donnees_a_traiter",exist_ok=True)
+    os.makedirs("../DatesIncorrectes",exist_ok=True)
+    os.makedirs("../exports",exist_ok=True)
 
 def importPasse():
     
     
-    #exports=os.listdir('./exports')
-    #dfpasses=[importer('./exports/'+i,0) for i in exports] #référence passe en index (colonne 0) dans les enregistrements
+    #exports=os.listdir('../exports')
+    #dfpasses=[importer('../exports/'+i,0) for i in exports] #référence passe en index (colonne 0) dans les enregistrements
     dfpasses=[]
-    for dossier in os.listdir("./exports"):
-        for sousDos in os.listdir(f"./exports/{dossier}"):
+    for dossier in os.listdir("../exports"):
+        for sousDos in os.listdir(f"../exports/{dossier}"):
             if "." in sousDos: continue #on ignore les éventuels fichiers présents ici
-            for fichier in os.listdir(f"./exports/{dossier}/{sousDos}"):
+            for fichier in os.listdir(f"../exports/{dossier}/{sousDos}"):
                 if ".csv" in fichier: #on garde seulement les fichiers csv
-                    dfpasses.append(importer(f"./exports/{dossier}/{sousDos}/{fichier}",0))
+                    dfpasses.append(importer(f"../exports/{dossier}/{sousDos}/{fichier}",0))
 
     
     
@@ -81,7 +81,7 @@ def concatener(liste_df:list[pd.DataFrame]):
     ATTENTION, Des doublons ont été détectés dans les comptes passés
     !!!!        
     """)
-        df_doublons.to_csv("./doublons/"+datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')+".csv",sep=";",date_format="%d/%m/%Y")
+        df_doublons.to_csv("../doublons/"+datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')+".csv",sep=";",date_format="%d/%m/%Y")
         ans=input("Souhaitez vous continuer tout de même ? (ces données seront ignorées et visibles dans une fichier à part) (oui/non)")
         ans=ans.lower()
         if ans!="oui":
@@ -104,7 +104,7 @@ def verifDates(df:pd.DataFrame,dfpasse:pd.DataFrame): #si pas de problem, df vid
 
               !!!!!
 """)
-        dfproblem.to_csv("./DatesIncorrectes/"+datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')+".csv",sep=";",date_format="%d/%m/%Y")
+        dfproblem.to_csv("../DatesIncorrectes/"+datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')+".csv",sep=";",date_format="%d/%m/%Y")
         ans=input("Souhaitez vous continuer tout de même ? (ces données seront ignorées et visibles dans une fichier à part) (oui/non)")
         ans=ans.lower()
 
@@ -146,8 +146,8 @@ def Export(df:pd.DataFrame):
                 mois="0"+mois
             timestamp=mois+"_"+str(annee)
 
-            os.makedirs(f"./exports/{annee}/{timestamp}",exist_ok=True)
-            dfMois.to_csv("./exports/"+str(annee)+"/"+timestamp+"/"+timestamp+".csv",sep=";",date_format="%d/%m/%Y")
+            os.makedirs(f"../exports/{annee}/{timestamp}",exist_ok=True)
+            dfMois.to_csv("../exports/"+str(annee)+"/"+timestamp+"/"+timestamp+".csv",sep=";",date_format="%d/%m/%Y")
             mois=int(mois)
             mois+=1
         annee+=1
@@ -170,14 +170,14 @@ def interfaceConsole():
     if ans.lower()=="oui": #import de fichiers
         print("Mettez le fichier dans le dossier 'donnees_a_traiter'")
         nom=input("Rentrez le nom du fichier CSV sans l'extension \n")
-        chemin=f"./donnees_a_traiter/{nom}.csv"
+        chemin=f"../donnees_a_traiter/{nom}.csv"
         p1(chemin)
-        print("vos fichiers séparés par mois sont maintenant dans ./exports, vous pouvez désormais les traiter")
+        print("vos fichiers séparés par mois sont maintenant dans ../exports, vous pouvez désormais les traiter")
     
     
     ans=input("Voulez vous Analyser vos fichiers ? (oui/non) Le traitement nécessite d'avoir préalablement importé des fichiers\n")
     if ans.lower()=="oui": #analyse des fichiers exportés préalablement
-        if len(os.listdir("./exports"))==0:
+        if len(os.listdir("../exports"))==0:
             print("Veuillez préalablement importer des fichiers")
             return False #erreur
         ans=input("Voulez vous analyser par mois ou par année ? (mois/annee) \n")
@@ -187,14 +187,14 @@ def interfaceConsole():
             if not a.AnalyseMois(annee,mois):
                 print("une erreur inconnue est survenue, veuillez réessayer")
                 return False
-            print(f"vous retrouverez les bilans, depenses et gains du mois {mois}_{annee} dans le dossier ./exports/{annee}/{mois}_{annee}")
+            print(f"vous retrouverez les bilans, depenses et gains du mois {mois}_{annee} dans le dossier ../exports/{annee}/{mois}_{annee}")
         elif ans.lower()=="annee":
             annee=input("Choisissez l'année (sous la forme YYYY) \n")
 
             if not a.AnalyseAnnee(annee):
                 print("une erreur inconnue est survenue, veuillez réessayer")
                 return False
-            print(f"Vous retrouverez les bilans, depenses et gains de l'année{annee} dans le fichier ./exports{annee}")
+            print(f"Vous retrouverez les bilans, depenses et gains de l'année{annee} dans le fichier ../exports{annee}")
     return True
 
 def main():
