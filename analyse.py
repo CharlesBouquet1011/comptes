@@ -2,6 +2,7 @@ import main as m
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+import datetime
 def sauvegarderFigures(df:pd.DataFrame,titre:str,chemin):
     plt.figure()
     dfCopy=df.copy().astype(float)
@@ -85,13 +86,14 @@ def AnalyseMois(Annee:str,Mois:str)->bool: #annee YYYY mois mm
 def filtre(df:pd.DataFrame,libelle:str,mois=None)->pd.DataFrame:
     """
     on affiche que les résultats du df qui correspondent au libelle et au mois s'il est précisé
+    recherche large (le libellé correspond en partie à la ligne du dataframe)
     
     """
-    res=df[df["Libelle"]==libelle]
+    res=df[df["Libelle simplifie"].str.contains(libelle,na=False)]
     if mois is not None:
-        mois=datetime.strptime("%m_%Y")
-        res=res[res["Date de comptbilisation"]==mois]
-     return res
+        mois=datetime.datetime.strptime("%m_%Y")
+        res=res[res["Date de comptabilisation"]==mois]
+    return res
 
 if __name__=="__main__":
     AnalyseAnnee("2025")
