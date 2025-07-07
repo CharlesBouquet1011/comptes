@@ -82,5 +82,16 @@ def AnalyseMois(Annee:str,Mois:str)->bool: #annee YYYY mois mm
     traitement(df,chemin,MoisAnnee,"Mois")
     return True
 
+def filtre(df:pd.DataFrame,libelle:str,mois=None)->pd.DataFrame:
+    """
+    on affiche que les résultats du df qui correspondent au libelle et au mois s'il est précisé
+    
+    """
+    res=df[df["Libelle"]==libelle]
+    if mois is not None:
+        mois=datetime.strptime("%m_%Y")
+        res=res[res["Date de comptbilisation"]==mois]
+     return res
+
 if __name__=="__main__":
     AnalyseAnnee("2025")
