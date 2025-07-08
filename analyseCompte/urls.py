@@ -10,7 +10,7 @@ urlpatterns = [
 
     path("calcImpots/",include(views.calcImpots)),
 
-    path("calcTotal",include()) #à compléter
+    path("calcTotal",include(views.somme)) #à compléter
 
     
 ]
