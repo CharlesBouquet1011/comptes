@@ -1,4 +1,3 @@
-import main as m
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
@@ -11,6 +10,8 @@ def sauvegarderFigures(df:pd.DataFrame,titre:str,chemin):
     plt.savefig(f"{chemin}.jpg")
 
 def AnalyseAnnee(annee:str)->bool:
+    from . import main as m
+
     """
     annee: YYYY
     affiche et sauvegarde des graphiques des dépenses par mois, crédits par mois et bilan par mois
@@ -66,6 +67,8 @@ def traitement(df:pd.DataFrame,chemin:str,nom:str,typ:str):
     print("Bilan pour",nom,":",bilan["Bilan"].sum())
 
 def AnalyseMois(Annee:str,Mois:str)->bool: #annee YYYY mois mm
+    from . import main as m
+
     """
     annee: YYYY
     mois: mm

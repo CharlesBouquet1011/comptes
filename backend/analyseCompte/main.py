@@ -1,9 +1,8 @@
 import pandas as pd
 import os
 import datetime
-from erreurs import IncorrectDate,Duplicates
+from .erreurs import IncorrectDate,Duplicates
 from decimal import Decimal #pour virer les problèmes d'arrondi de virgule flottante
-import analyse as a
 def convertisseur(s):
     if pd.isna(s): #on n'y touche pas
         return s
@@ -166,6 +165,8 @@ def p1(fichier):
     Export(dftot)
 
 def interfaceConsole():
+    from . import analyse as a
+
     ans=input("Voulez vous importer des fichiers pour traitement futur ? \n")
     if ans.lower()=="oui": #import de fichiers
         print("Mettez le fichier dans le dossier 'donnees_a_traiter'")

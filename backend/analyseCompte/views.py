@@ -1,22 +1,39 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 import json
-import analyse as a
+from . import analyse as a
 import pandas as pd
-import main as m
-from uploadForm import UploadCSVForm
+from . import main as m
+import os
 def upload(request):
     """
     upload le fichier csv à traiter
     
     """
-    if request.method=="POST":
-        file=request.FILES.get("file") #je récupère le file dans le data envoyé dans le body Django met les fichiers tout seul dans request.FILES
-        #le frontend DOIT envoyer un objet de type File JS
-        #enregistrement et traitement du fichier comme je veux maintenant
+    try:
+        if request.method=="POST":
+            file=request.FILES.get("file") #je récupère le file dans le data envoyé dans le body Django met les fichiers tout seul dans request.FILES
+            #le frontend DOIT envoyer un objet de type File JS
+            #enregistrement et traitement du fichier comme je veux maintenant
+            if file and file.name.endswith(".csv"):
+                if file.name not in os.listdir("../donnees_a_traiter"):
+                    chemin=f"../donnees_a_traiter/{file.name}"
+                    with open(chemin,"wb+") as destination:
+                        for partie in file.chunks():
+                            destination.write(partie)
+                    return JsonResponse(status=200)
+                else:
+                    print("Fichier déjà présent")
+                    return JsonResponse({"error":"Le fichier est déjà présent"},status=409)
+                
+            else:
+                return JsonResponse({"error":"Fichier incorrect"},status=406)
+            
+    except Exception as e:
+        print("erreur :", e)
+        return JsonResponse({"error": "Erreur serveur"},status=500)
+        
 
-        pass
-    pass
 
 def analyseAnnee(request):
     if request.method=="POST":
@@ -32,7 +49,7 @@ def analyseAnnee(request):
                 chemins=[f"{chem}/Depenses_{nom}",f"{chem}/Gains_{nom}",f"{chem}/Bilan_{nom}"]
                 return JsonResponse({"chemins":chemins},status=200)
         except json.JSONDecodeError as e:
-            return JsonResponse({"error": "JSON Invalide"},status=400)
+            return JsonResponse({"error": "JSON Invalide"},status=406)
     
 
 def analyseMois(request):
@@ -79,24 +96,7 @@ def get_columns(request):
             return JsonResponse({"error":"Erreur serveur"},status=500)
 # Create your views here.
 
-def get_upload_forms_schema(request):
-    if request.method=="GET":
-        try:
-            form=UploadCSVForm()
-            form_dict={"champs:":[
-                {
-                    'name':name,
-                    'label':field.label,
-                    'required':field.required,
-                    'widget':field.widget,
-                    'type':type(field).__name__,
-
-                }
-
-            for name,field in form.fields.items()
-
-            ]} #on n'utilise pas le forms sauf ici, à simplifier donc
-            return JsonResponse(form_dict,status=200)
-        except Exception as e:
-            print("Erreur:",e)
-            return JsonResponse({"error":"Erreur serveur"},status=500)
+def filtre(request):
+    pass    
+def calcImpots(request):
+    pass
