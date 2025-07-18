@@ -1,8 +1,10 @@
 import logo from './logo.svg';
 import './App.css';
 import {UploadForm} from "./Analyse/analyse.jsx"
+import { CSRFContext } from './VarGlob/csrf.jsx';
 function App() {
   return (
+    <CSRFContext>
     <div className="App">
       <UploadForm></UploadForm>
       <header className="App-header">
@@ -20,6 +22,7 @@ function App() {
         </a>
       </header>
     </div>
+    </CSRFContext>
   );
 }
 

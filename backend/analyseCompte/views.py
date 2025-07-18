@@ -16,12 +16,12 @@ def upload(request):
             #le frontend DOIT envoyer un objet de type File JS
             #enregistrement et traitement du fichier comme je veux maintenant
             if file and file.name.endswith(".csv"):
-                if file.name not in os.listdir("../donnees_a_traiter"):
-                    chemin=f"../donnees_a_traiter/{file.name}"
+                if file.name not in os.listdir("./donnees_a_traiter"):
+                    chemin=f"./donnees_a_traiter/{file.name}"
                     with open(chemin,"wb+") as destination:
                         for partie in file.chunks():
                             destination.write(partie)
-                    return JsonResponse(status=200)
+                    return JsonResponse({"ok":"ok"},status=200)
                 else:
                     print("Fichier déjà présent")
                     return JsonResponse({"error":"Le fichier est déjà présent"},status=409)

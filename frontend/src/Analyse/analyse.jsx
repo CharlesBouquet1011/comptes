@@ -1,6 +1,6 @@
 import React from 'react'
-import Dropzone from 'react-dropzone'
-
+import Dropzone, {useDropzone} from 'react-dropzone'
+import { getCookie } from '../VarGlob/csrf'
 /*
 () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -13,6 +13,39 @@ import Dropzone from 'react-dropzone'
 };
 */
 
+async function sendFile(file){
+  try{
+    console.log("envoi")
+    const cookie=getCookie("csrftoken")
+    const formdata=new FormData()
+    formdata.append("file",file)
+    const response = await fetch("http://localhost:8000/api/upload/", { //comme avant
+          method: "POST",
+          credentials:'include',
+          headers:{
+            "X-CSRFToken": cookie
+          },
+          body:formdata
+
+        });
+  if (response.ok){
+    console.log("Fichier envoyé avec succès")
+  }
+  else{
+    const data=await response.json()
+
+    console.log(data.error)
+  }
+  }
+  catch (err){
+    console.log("Erreur lors de l'envoi du fichier: ",err)
+  }
+  
+
+}
+
+
+
 
 function AnalyseForm(){
 
@@ -24,7 +57,7 @@ function AnalyseForm(){
 export function UploadForm(){
     return(<>
     <h4>Veuillez mettre le fichier csv que vous voulez analyser</h4>    
-    <Dropzone onDrop={acceptedFiles => sendFile(acceptedFiles)} multiple={false} accept={{ 'text/csv': ['.csv'] }} >
+    <Dropzone onDrop={acceptedFiles => {sendFile(acceptedFiles[0])}} multiple={false} accept={{ 'text/csv': ['.csv'] }} >
     {({getRootProps, getInputProps}) => (
         <section>
         <div {...getRootProps()}>
@@ -37,22 +70,3 @@ export function UploadForm(){
     </>)
 
 }
-
-async function sendFile(file){
-  const formdata=new FormData()
-  formdata.append("file",file)
-  const response = await fetch("http://localhost:8000/api/upload/", { //comme avant
-        method: "POST",
-        body:formdata
-
-      });
-  if (response.ok){
-    console.log("Fichier envoyé avec succès")
-  }
-  else{
-    console.log(response.error)
-  }
-
-}
-
-
