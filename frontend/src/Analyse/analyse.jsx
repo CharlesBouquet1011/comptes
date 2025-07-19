@@ -1,18 +1,8 @@
-import React from 'react'
-import Dropzone, {useDropzone} from 'react-dropzone'
+import { use, useEffect,useState } from 'react'
+import Dropzone from 'react-dropzone'
 import { getCookie } from '../VarGlob/csrf'
-/*
-() => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  return (
-    <DatePicker
-      selected={selectedDate}
-      onChange={(date) => setSelectedDate(date)}
-    />
-  );
-};
-*/
-
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 async function sendFile(file){
   try{
     console.log("envoi")
@@ -44,15 +34,134 @@ async function sendFile(file){
 
 }
 
+function AnalyseFormMonth({month}){//format MM-yyyy ou l'inverse jsplus ce qu'il faut au backend
+
+}
+
+
+function AnalyseFormYear({annee}){
+  const [data,setData]=useState([])
+  console.log("analyse...")
+  const fetchData=async ()=>{
+    try{
+      const cookie=getCookie("csrftoken")
+      const response=await fetch("http://localhost:8000/api/annee/",{
+      method:"POST",
+      credentials:"include",
+      headers:{
+        "X-CSRFToken":cookie,
+      },
+      body:JSON.stringify({"annee":annee})
 
 
 
-function AnalyseForm(){
+    })
+    if (response.ok){
+      const donnee=await response.json()
+      setData([donnee.noms,donnee.chemins])
+    }
+    else{
+      console.error("Erreur lors de la récupération des données")
+    }
+    }
+    catch (err){
+      console.error("Erreur:", err)
+    }
+    
+  }
+  useEffect(()=>{fetchData()},[annee])
+
+  if (data.length===0){
+    return(<>Chargement ...</>)
+  }
+  else{
+    return(
+      <table>
+        <thead>
+        <tr>
+      {data[0].map(val=>(
+      <th key={val}>
+        {val}
+      </th>
+      ))}
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+      {data[1].map(val=>(
+      <td key={val}>
+      <img src={val} />
+      </td>
+        
+    ))}
+      </tr>
+      </tbody>
+    </table>
+    )
+  }
+
+}
+
+export function ChooseAnalyse(){
+  const [choix,setChoix]=useState("")
 
 
+
+  if (choix==""){
+    return(<>
+    <h4>Choisissez Comment vous voulez analyser:</h4>
+    <label>
+      <input type="radio" name="choix" value="Annee" onClick={()=>setChoix("Annee")}/>
+      Analyse par Annee    
+    </label>
+    <label>
+      <input type="radio" name="choix" value="Mois" onClick={()=>setChoix("Mois")}/>
+      Analyse par Mois    
+    </label>
+  </>)
+  }
+  else{
+    return(<>
+    <Analyse choix={choix}/>
+    <br />
+    <button onClick={()=>setChoix("")}> Reset </button>
+    </>)
+  }
+  
 
 
 }
+
+function Analyse({choix}){
+  const [date,setDate]=useState(new Date())
+  const moisString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+  return ( 
+  choix=="Annee" ?
+  <>
+  <DatePicker selected={date}
+            onChange={(date)=>setDate(date)}
+            showYearPicker
+            dateFormat="yyyy"
+            placeholderText='Choisir une année'
+  />
+  <AnalyseFormYear annee={date.getFullYear().toString()} />
+  </>
+: 
+<>
+<DatePicker selected={date}
+            onChange={(date)=>setDate(date)}
+            showMonthYearPicker
+            dateFormat="yyyy"
+            placeholderText='Choisir une année'
+  />
+<AnalyseFormMonth month={moisString} />
+  </>
+)
+ 
+
+}
+
 
 export function UploadForm(){
     return(<>

@@ -5,6 +5,7 @@ from . import analyse as a
 import pandas as pd
 from . import main as m
 import os
+Domaine="http://localhost:8000/"
 def upload(request):
     """
     upload le fichier csv à traiter
@@ -38,16 +39,16 @@ def upload(request):
 def analyseAnnee(request):
     if request.method=="POST":
         try:
-            data=json.load(request.body)
+            data=json.loads(request.body.decode('utf-8'))
             annee=data.get("annee") 
             nonErr=a.AnalyseAnnee(annee) #ici l'année est un string
             if not nonErr:
                 return JsonResponse({"error: une erreur est survenue"},status=500)
             else:
-                chem=f"../exports{annee}"
-                nom="Annee"
-                chemins=[f"{chem}/Depenses_{nom}",f"{chem}/Gains_{nom}",f"{chem}/Bilan_{nom}"]
-                return JsonResponse({"chemins":chemins},status=200)
+                chem=f"{Domaine}exports/{annee}"
+                
+                chemins=[f"{chem}/Depenses_{annee}.jpg",f"{chem}/Gains_{annee}.jpg",f"{chem}/Bilan_{annee}.jpg"]
+                return JsonResponse({"chemins":chemins,"noms":[f"Depenses {annee}", f"Gains {annee}", f"Bilan {annee}"]},status=200)
         except json.JSONDecodeError as e:
             return JsonResponse({"error": "JSON Invalide"},status=406)
     
@@ -96,7 +97,11 @@ def get_columns(request):
             return JsonResponse({"error":"Erreur serveur"},status=500)
 # Create your views here.
 
-def filtre(request):
+def filtre(request): #on affichera le DF en forme de tableau seulement pour les entrées correspondantes au critère
     pass    
-def calcImpots(request):
+def calcImpots(request): #probablement compliqué 
+    pass
+
+def verify(request): #vérifie que les données enregistrées correspondent aux données de la banque jusqu'à la date de la dernière donnée enregistrée
+    #permet de détecter aisément une incohérence
     pass

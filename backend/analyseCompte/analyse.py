@@ -1,13 +1,17 @@
+import matplotlib
+matplotlib.use('Agg') #changement du backend de plot, pas de TKinter (ça fait crash django) mais Anti Grain Geometry
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import datetime
+
 def sauvegarderFigures(df:pd.DataFrame,titre:str,chemin):
-    plt.figure()
-    dfCopy=df.copy().astype(float)
-    dfCopy.plot(kind="bar")
-    plt.title(titre)
-    plt.savefig(f"{chemin}.jpg")
+    dfCopy = df.copy().astype(float)
+    ax = dfCopy.plot(kind="bar", figsize=(5, 3))  
+    ax.set_title(titre)
+    plt.tight_layout()
+    plt.savefig(f"{chemin}.jpg", dpi=150) #le DPI est utile pour que l'image ne soit pas entièrement blanche (jsp pourquoi ça bug sans alors que c'est le paramètre par défaut normalement)
+    plt.close()
 
 def AnalyseAnnee(annee:str)->bool:
     from . import main as m
@@ -19,17 +23,17 @@ def AnalyseAnnee(annee:str)->bool:
 
     """
     dfs=[]
-    if annee not in os.listdir("../exports"):
+    if annee not in os.listdir("./exports"):
         print("Dossier inexistant")
         return False
-    for dossier in os.listdir(f"../exports/{annee}"):
+    for dossier in os.listdir(f"./exports/{annee}"):
         if "." in dossier: continue #on ignore les éventuels fichiers présents ici
-        for fichier in os.listdir(f"../exports/{annee}/{dossier}"):
+        for fichier in os.listdir(f"./exports/{annee}/{dossier}"):
             if ".csv" in fichier: #on garde que les csv
-                dfs.append(m.importer(f"../exports/{annee}/{dossier}/{fichier}",0))
+                dfs.append(m.importer(f"./exports/{annee}/{dossier}/{fichier}",0))
     
     df,dfD=m.concatener(dfs)
-    chemin=f"../exports/{annee}"
+    chemin=f"./exports/{annee}"
     traitement(df,chemin,annee,"Annee")
     return True
 
@@ -76,13 +80,13 @@ def AnalyseMois(Annee:str,Mois:str)->bool: #annee YYYY mois mm
     affiche et sauvegarde des graphiques des dépenses par jour, crédits par jour et bilan (crédit - dépenses) par jour
     """
     MoisAnnee=f"{Mois}_{Annee}"
-    fichier=f"../exports/{Annee}/{MoisAnnee}/{MoisAnnee}.csv"
+    fichier=f"./exports/{Annee}/{MoisAnnee}/{MoisAnnee}.csv"
     try:
         df=m.importer(fichier,0) #ce df est le bilan débit + recettes
     except Exception as e:
         print(e)
         return False
-    chemin=f"../exports/{Annee}/{MoisAnnee}"
+    chemin=f"./exports/{Annee}/{MoisAnnee}"
     traitement(df,chemin,MoisAnnee,"Mois")
     return True
 
