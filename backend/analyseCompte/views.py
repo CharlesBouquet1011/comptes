@@ -6,7 +6,8 @@ import pandas as pd
 from . import main as m
 import os
 Domaine="http://localhost:8000/"
-def upload(request):
+def upload(request): #il faudrait enchaîner sur le traitement des données (les séparer pour les répartir dans les dossiers des mois correspondants)
+    #probablement une autre API à faire pour ça
     """
     upload le fichier csv à traiter
     
@@ -17,15 +18,12 @@ def upload(request):
             #le frontend DOIT envoyer un objet de type File JS
             #enregistrement et traitement du fichier comme je veux maintenant
             if file and file.name.endswith(".csv"):
-                if file.name not in os.listdir("./donnees_a_traiter"):
-                    chemin=f"./donnees_a_traiter/{file.name}"
+                
+                    chemin="./donnees_a_traiter/a_traiter.csv"
                     with open(chemin,"wb+") as destination:
                         for partie in file.chunks():
                             destination.write(partie)
                     return JsonResponse({"ok":"ok"},status=200)
-                else:
-                    print("Fichier déjà présent")
-                    return JsonResponse({"error":"Le fichier est déjà présent"},status=409)
                 
             else:
                 return JsonResponse({"error":"Fichier incorrect"},status=406)
@@ -33,6 +31,25 @@ def upload(request):
     except Exception as e:
         print("erreur :", e)
         return JsonResponse({"error": "Erreur serveur"},status=500)
+        
+def pretraitement(request):
+    if request.method=="PUT":
+            if "a_traiter.csv" not in os.listdir("./donnees_a_traiter"):
+                return JsonResponse({"error" : "Veuillez upload un fichier avant"}, status=404)
+
+            [doublons,dateInvalides,cheminDates,cheminDoublons]=m.pretraitement("./donnees_a_traiter/a_traiter.csv")
+            cheminDates=Domaine+cheminDates
+            cheminDoublons=Domaine+cheminDoublons
+            if not doublons.empty and not dateInvalides.empty:
+                return JsonResponse({"warning": "des doublons et des dates incorrectes ont été  détectées (transaction ajoutée plus vieille que la dernière enregistrée)","df":cheminDates,"df2":cheminDoublons},status=200)
+            if not doublons.empty:
+                return JsonResponse({"warning": "Des doublons ont été détectés, ces données ont été ignorées dans le traitement","df2":cheminDoublons}, status=200)
+            #l'orientation transforme le Dataframe en lise de dictionnaires (dont les clés sont les colonnes et les valeurs, les valeurs de cette ligne)
+            if not dateInvalides.empty:
+
+                return JsonResponse({"warning": "Une date des données à traiter est plus ancienne que celle des données déjà traitées, ces données ont été traitées","df":cheminDates},status=200)
+            return JsonResponse({"ok":"Vous pouvez maintenant analyser les données"},status=200)    
+        
         
 
 
@@ -43,7 +60,7 @@ def analyseAnnee(request):
             annee=data.get("annee") 
             nonErr=a.AnalyseAnnee(annee) #ici l'année est un string
             if not nonErr:
-                return JsonResponse({"error: une erreur est survenue"},status=500)
+                return JsonResponse({"error": "une erreur est survenue"},status=500)
             else:
                 chem=f"{Domaine}exports/{annee}"
                 
@@ -61,9 +78,9 @@ def analyseMois(request):
             mois=data.get("mois")
             nonErr=a.AnalyseMois(annee,mois)
             if not nonErr:
-                return JsonResponse({"error: une erreur est survenue"},status=500)
+                return JsonResponse({"error": "une erreur est survenue"},status=500)
             else:
-                chem=f"../exports/{annee}/{mois}_{annee}"
+                chem=f"{Domaine}exports/{annee}/{mois}_{annee}"
                 nom="Mois"
                 chemins=[f"{chem}/Depenses_{nom}",f"{chem}/Gains_{nom}",f"{chem}/Bilan_{nom}"]
                 return JsonResponse({"chemins":chemins},status=200)

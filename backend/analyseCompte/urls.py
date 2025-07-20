@@ -8,7 +8,7 @@ urlpatterns = [
     path("mois/",views.analyseMois),
     path("verify/",views.verify),
     path("filtrer/",views.filtre),
-
+    path("pretraitement/",views.pretraitement),
     path("calcImpots/",views.calcImpots),
 
     path("calcTotal",views.somme) #à compléter
