@@ -32,10 +32,10 @@ def AnalyseAnnee(annee:str)->bool:
             if ".csv" in fichier: #on garde que les csv
                 dfs.append(m.importer(f"./exports/{annee}/{dossier}/{fichier}",0))
     
-    df,dfD=m.concatener(dfs)
+    df,dfD,chemin2=m.concatener(dfs)
     chemin=f"./exports/{annee}"
-    traitement(df,chemin,annee,"Annee")
-    return True
+    gain,depenses,bilan=traitement(df,chemin,annee,"Annee")
+    return True,gain,depenses,bilan
 
 def traitement(df:pd.DataFrame,chemin:str,nom:str,typ:str):
     if typ=="Mois":
@@ -66,10 +66,7 @@ def traitement(df:pd.DataFrame,chemin:str,nom:str,typ:str):
     sauvegarderFigures(gainparjour, b,f"{chemin}/Gains_{nom}")
     
     sauvegarderFigures(bilanParJour,c,f"{chemin}/Bilan_{nom}")
-    print("Gains pour", nom,":",gain["Credit"].sum())
-    print("Depenses pour",nom,":",depenses["Debit"].sum())
-    print("Bilan pour",nom,":",bilan["Bilan"].sum())
-
+    return gain["Credit"].sum(),depenses["Debit"].sum(),bilan["Bilan"].sum()
 def AnalyseMois(Annee:str,Mois:str)->bool: #annee YYYY mois mm
     from . import main as m
 
@@ -87,8 +84,8 @@ def AnalyseMois(Annee:str,Mois:str)->bool: #annee YYYY mois mm
         print(e)
         return False
     chemin=f"./exports/{Annee}/{MoisAnnee}"
-    traitement(df,chemin,MoisAnnee,"Mois")
-    return True
+    gain,depenses,bilan=traitement(df,chemin,MoisAnnee,"Mois")
+    return True,gain,depenses,bilan
 
 def filtreparLibelle(df:pd.DataFrame,libelle:str,mois=None)->pd.DataFrame:
     """

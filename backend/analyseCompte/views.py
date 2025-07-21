@@ -10,6 +10,10 @@ def upload(request): #il faudrait enchaîner sur le traitement des données (les
     #probablement une autre API à faire pour ça
     """
     upload le fichier csv à traiter
+    parametre:
+        -le fichier à upload
+    retour:
+        -un statut sur la réussite ou l'échec de l'upload
     
     """
     try:
@@ -33,6 +37,13 @@ def upload(request): #il faudrait enchaîner sur le traitement des données (les
         return JsonResponse({"error": "Erreur serveur"},status=500)
         
 def pretraitement(request):
+    """
+    traite le fichier qui vient d'être upload
+    parametre:
+        aucun
+    retour:
+        
+    """
     if request.method=="PUT":
             if "a_traiter.csv" not in os.listdir("./donnees_a_traiter"):
                 return JsonResponse({"error" : "Veuillez upload un fichier avant"}, status=404)
@@ -54,41 +65,66 @@ def pretraitement(request):
 
 
 def analyseAnnee(request):
+    """
+    renvoie des graphiques qui montrent à quoi ressemblent les dépenses par jour dans un mois
+    paramètres:
+        - annee: string
+    retours:
+        -chemins des images
+        -nom des images
+    
+    """
     if request.method=="POST":
         try:
             data=json.loads(request.body.decode('utf-8'))
             annee=data.get("annee") 
-            nonErr=a.AnalyseAnnee(annee) #ici l'année est un string
+            nonErr,gain,depenses,bilan=a.AnalyseAnnee(annee) #ici l'année est un string
             if not nonErr:
                 return JsonResponse({"error": "une erreur est survenue"},status=500)
             else:
                 chem=f"{Domaine}exports/{annee}"
                 
                 chemins=[f"{chem}/Depenses_{annee}.jpg",f"{chem}/Gains_{annee}.jpg",f"{chem}/Bilan_{annee}.jpg"]
-                return JsonResponse({"chemins":chemins,"noms":[f"Depenses {annee}", f"Gains {annee}", f"Bilan {annee}"]},status=200)
+                return JsonResponse({"chemins":chemins,"noms":[f"Depenses {annee}", f"Gains {annee}", f"Bilan {annee}"],"bilan":[depenses,gain,bilan]},status=200)
         except json.JSONDecodeError as e:
             return JsonResponse({"error": "JSON Invalide"},status=406)
     
 
 def analyseMois(request):
+    """
+    renvoie des graphiques qui montrent à quoi ressemblent les dépenses par jour dans un mois
+    paramètres:
+        - mois: string
+        - annee: string
+    retours:
+        -chemins des images
+        -nom des images
+    """
     if request.method=="POST":
         try:
-            data=json.load(request.body)
+            data=json.loads(request.body.decode('utf-8')) #ce n'est pas un fichier qui est envoyé donc il faut décoder
             annee=data.get("annee") 
             mois=data.get("mois")
-            nonErr=a.AnalyseMois(annee,mois)
+            nonErr,gain,depenses,bilan=a.AnalyseMois(annee,mois)
             if not nonErr:
                 return JsonResponse({"error": "une erreur est survenue"},status=500)
             else:
                 chem=f"{Domaine}exports/{annee}/{mois}_{annee}"
                 nom="Mois"
-                chemins=[f"{chem}/Depenses_{nom}",f"{chem}/Gains_{nom}",f"{chem}/Bilan_{nom}"]
-                return JsonResponse({"chemins":chemins},status=200)
+                chemins=[f"{chem}/Depenses_{mois}_{annee}.jpg",f"{chem}/Gains_{mois}_{annee}.jpg",f"{chem}/Bilan_{mois}_{annee}.jpg"]
+                return JsonResponse({"chemins":chemins,"noms":[f"Depenses {mois} {annee}", f"Gains {mois} {annee}", f"Bilan {mois} {annee}"],"bilan":[depenses,gain,bilan]},status=200)
         except json.JSONDecodeError as e:
+            print("erreur JSON :",e)
             return JsonResponse({"error": "JSON Invalide"},status=400)
+        except Exception as e:
+            print("erreur :",e)
+            return JsonResponse({"error":"une erreur est survenue"},status=500)
     pass
 
 def somme(request):
+    """
+    renvoie la somme selon une colonne après avoir peut-être filtré le dataframe
+    """
     if request.method=="POST":
         try:
             data=json.load(request.body)
@@ -104,6 +140,9 @@ def somme(request):
             return JsonResponse({"error": "JSON Invalide"},status=400)
     
 def get_columns(request):
+    """
+    renvoie la liste des colonnes présentes dans le dataframe enregistré
+    """
     if request.method=="GET":
         try:
             df=m.importPasse()
@@ -121,4 +160,7 @@ def calcImpots(request): #probablement compliqué
 
 def verify(request): #vérifie que les données enregistrées correspondent aux données de la banque jusqu'à la date de la dernière donnée enregistrée
     #permet de détecter aisément une incohérence
+    pass
+
+def camembert(request): #voir la répartition des dépenses
     pass

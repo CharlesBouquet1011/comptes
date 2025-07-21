@@ -6,44 +6,37 @@ import "react-datepicker/dist/react-datepicker.css";
 
 
 function AnalyseFormMonth({month}){//format MM-yyyy ou l'inverse jsplus ce qu'il faut au backend
-
-}
-
-
-function AnalyseFormYear({annee}){
   const [data,setData]=useState([])
-  console.log("analyse...")
+  const [annee,mois]=month.split("-")
   const fetchData=useCallback(async ()=>{
     try{
       const cookie=getCookie("csrftoken")
-      const response=await fetch("http://localhost:8000/api/annee/",{
-      method:"POST",
-      credentials:"include",
-      headers:{
-        "X-CSRFToken":cookie,
-      },
-      body:JSON.stringify({"annee":annee})
-
-
-
-    })
-    if (response.ok){
-      const donnee=await response.json()
-      setData([donnee.noms,donnee.chemins])
+      const response= await fetch("http://localhost:8000/api/mois/",{
+        method:"POST",
+        credentials:"include",
+        headers:{
+          "X-CSRFToken":cookie,
+        },
+        body:JSON.stringify({"annee":annee,"mois":mois})
+      })
+      if (response.ok){
+        const donnees=await response.json()
+        setData([donnees.noms,donnees.chemins,donnees.bilan])
+      }else{
+        console.log("erreur serveur lors de l'analyse par mois")
+      }
     }
-    else{
-      console.error("Erreur lors de la récupération des données")
+    catch (e){
+      console.log("Erreur :",e)
     }
-    }
-    catch (err){
-      console.error("Erreur:", err)
-    }
-    
-  },[annee])
-  useEffect(()=>{fetchData()},[annee,fetchData])
-
+  },[month])
+  useEffect(()=>{fetchData()},[fetchData,annee,mois])
+  return(<AnalyseForm data={data} />)
+}
+function AnalyseForm({data}){
+  console.log(data)
   if (data.length===0){
-    return(<>Chargement ...</>)
+    return(<>Chargement ... <br /></>)
   }
   else{
     return(
@@ -66,10 +59,53 @@ function AnalyseFormYear({annee}){
         
     ))}
       </tr>
+      <tr>
+      {data[2].map(val=>(
+        <td key={val}>
+          Total : {val}
+        </td>
+      ))}
+      </tr>
+
       </tbody>
     </table>
     )
   }
+}
+
+function AnalyseFormYear({annee}){
+  const [data,setData]=useState([])
+  console.log("analyse...")
+  const fetchData=useCallback(async ()=>{
+    try{
+      const cookie=getCookie("csrftoken")
+      const response=await fetch("http://localhost:8000/api/annee/",{
+      method:"POST",
+      credentials:"include",
+      headers:{
+        "X-CSRFToken":cookie,
+      },
+      body:JSON.stringify({"annee":annee})
+
+
+
+    })
+    if (response.ok){
+      const donnee=await response.json()
+      setData([donnee.noms,donnee.chemins,donnee.bilan])
+    }
+    else{
+      console.error("Erreur lors de la récupération des données")
+    }
+    }
+    catch (err){
+      console.error("Erreur:", err)
+    }
+    
+  },[annee])
+  useEffect(()=>{fetchData()},[annee,fetchData])
+
+  return (<AnalyseForm data={data} />)
 
 }
 
