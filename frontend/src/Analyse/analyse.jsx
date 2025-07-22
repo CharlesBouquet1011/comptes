@@ -3,11 +3,12 @@ import Dropzone from 'react-dropzone'
 import { getCookie } from '../VarGlob/csrf'
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
+import {useAccount } from './askAccount';
 
 function AnalyseFormMonth({month}){//format MM-yyyy ou l'inverse jsplus ce qu'il faut au backend
   const [data,setData]=useState([])
   const [annee,mois]=month.split("-")
+  const {account}=useAccount()
   const fetchData=useCallback(async ()=>{
     try{
       const cookie=getCookie("csrftoken")
@@ -17,7 +18,7 @@ function AnalyseFormMonth({month}){//format MM-yyyy ou l'inverse jsplus ce qu'il
         headers:{
           "X-CSRFToken":cookie,
         },
-        body:JSON.stringify({"annee":annee,"mois":mois})
+        body:JSON.stringify({"annee":annee,"mois":mois,"compte":account})
       })
       if (response.ok){
         const donnees=await response.json()
@@ -29,8 +30,8 @@ function AnalyseFormMonth({month}){//format MM-yyyy ou l'inverse jsplus ce qu'il
     catch (e){
       console.log("Erreur :",e)
     }
-  },[month])
-  useEffect(()=>{fetchData()},[fetchData,annee,mois])
+  },[month,account])
+  useEffect(()=>{fetchData()},[fetchData])
   return(<AnalyseForm data={data} />)
 }
 function AnalyseForm({data}){
@@ -75,6 +76,7 @@ function AnalyseForm({data}){
 
 function AnalyseFormYear({annee}){
   const [data,setData]=useState([])
+  const {account}=useAccount()
   console.log("analyse...")
   const fetchData=useCallback(async ()=>{
     try{
@@ -85,7 +87,7 @@ function AnalyseFormYear({annee}){
       headers:{
         "X-CSRFToken":cookie,
       },
-      body:JSON.stringify({"annee":annee})
+      body:JSON.stringify({"annee":annee,"compte":account})
 
 
 
@@ -102,8 +104,8 @@ function AnalyseFormYear({annee}){
       console.error("Erreur:", err)
     }
     
-  },[annee])
-  useEffect(()=>{fetchData()},[annee,fetchData])
+  },[annee,account])
+  useEffect(()=>{fetchData()},[fetchData])
 
   return (<AnalyseForm data={data} />)
 
@@ -111,7 +113,7 @@ function AnalyseFormYear({annee}){
 
 export function ChooseAnalyse(){
   const [choix,setChoix]=useState("")
-
+  const {setAccount}=useAccount()
 
 
   if (choix===""){
@@ -131,13 +133,17 @@ export function ChooseAnalyse(){
     return(<>
     <Analyse choix={choix}/>
     <br />
-    <button onClick={()=>setChoix("")}> Reset </button>
+    <button onClick={()=>{setChoix("");
+      setAccount("")
+    }}> Reset </button>
     </>)
   }
   
 
 
 }
+
+
 
 function Analyse({choix}){
   const [date,setDate]=useState(new Date())
@@ -228,10 +234,15 @@ export function UploadForm(){
 
 
 function PreTraitement({reload}){
+  const {account}=useAccount()
   console.log("pre traitement")
   const [donnee,setDonnee]=useState({"warning":null,"df":null,"ok":null})
-  const traitement= async ()=>{
-    const cookie = getCookie("csrftoken")
+  const cookie = getCookie("csrftoken")
+  
+
+
+  const traitement= useCallback(async ()=>{
+    
     const response = await fetch("http://localhost:8000/api/pretraitement/",
       {
         method: "PUT",
@@ -239,11 +250,10 @@ function PreTraitement({reload}){
         headers:{
           "X-CSRFToken": cookie
         },
+        body:JSON.stringify({"compte":account})
       })
-    console.log("attente de reponse")
     if (response.ok){
       const data=await response.json()
-      console.log("on a les donnees")
       if ("warning"in data){
         //faire un truc qui affiche l'avertissement et le df en faute
         setDonnee({"warning":data.warning,"df":data.df,"df2":data.df2,"ok":null})
@@ -255,12 +265,12 @@ function PreTraitement({reload}){
       }
     }
     else{
-      console.log("reponse pas ok")
+      console.error("Erreur serveur")
     }
-    console.log("fin")
     
-  }
-  useEffect(()=>{traitement()},[reload])
+    
+  },[account])
+  useEffect(()=>{  traitement()},[reload])
   return(<>
     {donnee.warning && (
         <div className="bg-yellow-100 text-yellow-800 border border-yellow-400 rounded p-4 mb-2">

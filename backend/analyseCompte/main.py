@@ -41,13 +41,17 @@ def initialisation():
     os.makedirs("./DatesIncorrectes",exist_ok=True)
     os.makedirs("./exports",exist_ok=True)
 
-def importPasse():
+def importPasse(compte):
     
     
     #exports=os.listdir('../exports')
     #dfpasses=[importer('../exports/'+i,0) for i in exports] #référence passe en index (colonne 0) dans les enregistrements
+    if compte is None:
+        compte=""
+    else:
+        compte="/"+compte
     dfpasses=[]
-    for dossier in os.listdir("./exports"):
+    for dossier in os.listdir(f"./exports{compte}"):
         for sousDos in os.listdir(f"./exports/{dossier}"):
             if "." in sousDos: continue #on ignore les éventuels fichiers présents ici
             for fichier in os.listdir(f"./exports/{dossier}/{sousDos}"):
@@ -111,11 +115,15 @@ def verifDates(df:pd.DataFrame,dfpasse:pd.DataFrame): #si pas de problem, df vid
 
     return dfproblem,chemin
 
-def Export(df:pd.DataFrame):
+def Export(df:pd.DataFrame,compte):
     """
     Exporte les données par mois dans des csv
     
     """
+    if compte is None:
+        compte=""
+    else:
+        compte+="/"
     dateDebut=df["Date de comptabilisation"].min()
     dateFin=df["Date de comptabilisation"].max()
     anneeDebut=int(dateDebut.strftime("%Y"))
@@ -144,21 +152,21 @@ def Export(df:pd.DataFrame):
                 mois="0"+mois
             timestamp=mois+"_"+str(annee)
 
-            os.makedirs(f"./exports/{annee}/{timestamp}",exist_ok=True)
-            dfMois.to_csv("./exports/"+str(annee)+"/"+timestamp+"/"+timestamp+".csv",sep=";",date_format="%d/%m/%Y")
+            os.makedirs(f"./exports/{compte}{annee}/{timestamp}",exist_ok=True)
+            dfMois.to_csv("./exports/"+compte+str(annee)+"/"+timestamp+"/"+timestamp+".csv",sep=";",date_format="%d/%m/%Y")
             mois=int(mois)
             mois+=1
         annee+=1
         mois=1
     return liste_df_Mois
 
-def pretraitement(fichier):
+def pretraitement(fichier,compte):
     """
     importe et met en forme le fichier dans l'archive
     """
 
     df1=importer(fichier,3)
-    dfpasse,dfpasseDoublons=importPasse()
+    dfpasse,dfpasseDoublons=importPasse(compte)
     dfproblemDate,cheminDates=verifDates(df1,dfpasse)
     dftot,doublons,cheminDoublons=concatener([df1,dfpasse])
     Export(dftot)

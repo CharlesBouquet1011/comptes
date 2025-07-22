@@ -13,7 +13,7 @@ def sauvegarderFigures(df:pd.DataFrame,titre:str,chemin):
     plt.savefig(f"{chemin}.jpg", dpi=150) #le DPI est utile pour que l'image ne soit pas entièrement blanche (jsp pourquoi ça bug sans alors que c'est le paramètre par défaut normalement)
     plt.close()
 
-def AnalyseAnnee(annee:str)->bool:
+def AnalyseAnnee(annee:str,compte)->bool:
     from . import main as m
 
     """
@@ -23,17 +23,21 @@ def AnalyseAnnee(annee:str)->bool:
 
     """
     dfs=[]
-    if annee not in os.listdir("./exports"):
+    if compte is None:
+        compte=""
+    else:
+        compte+="/"
+    if annee not in os.listdir(f"./exports/{compte}"):
         print("Dossier inexistant")
-        return False
-    for dossier in os.listdir(f"./exports/{annee}"):
+        return False,0,0,0
+    for dossier in os.listdir(f"./exports/{compte}{annee}"):
         if "." in dossier: continue #on ignore les éventuels fichiers présents ici
-        for fichier in os.listdir(f"./exports/{annee}/{dossier}"):
+        for fichier in os.listdir(f"./exports/{compte}{annee}/{dossier}"):
             if ".csv" in fichier: #on garde que les csv
-                dfs.append(m.importer(f"./exports/{annee}/{dossier}/{fichier}",0))
+                dfs.append(m.importer(f"./exports/{compte}{annee}/{dossier}/{fichier}",0))
     
     df,dfD,chemin2=m.concatener(dfs)
-    chemin=f"./exports/{annee}"
+    chemin=f"./exports/{compte}{annee}"
     gain,depenses,bilan=traitement(df,chemin,annee,"Annee")
     return True,gain,depenses,bilan
 
@@ -67,8 +71,7 @@ def traitement(df:pd.DataFrame,chemin:str,nom:str,typ:str):
     
     sauvegarderFigures(bilanParJour,c,f"{chemin}/Bilan_{nom}")
     return gain["Credit"].sum(),depenses["Debit"].sum(),bilan["Bilan"].sum()
-def AnalyseMois(Annee:str,Mois:str)->bool: #annee YYYY mois mm
-    from . import main as m
+def AnalyseMois(Annee:str,Mois:str,compte)->bool: #annee YYYY mois mm
 
     """
     annee: YYYY
@@ -76,14 +79,19 @@ def AnalyseMois(Annee:str,Mois:str)->bool: #annee YYYY mois mm
 
     affiche et sauvegarde des graphiques des dépenses par jour, crédits par jour et bilan (crédit - dépenses) par jour
     """
+    from . import main as m
+    if compte is None:
+        compte=""
+    else:
+        compte+="/"
     MoisAnnee=f"{Mois}_{Annee}"
-    fichier=f"./exports/{Annee}/{MoisAnnee}/{MoisAnnee}.csv"
+    fichier=f"./exports/{compte}{Annee}/{MoisAnnee}/{MoisAnnee}.csv"
     try:
         df=m.importer(fichier,0) #ce df est le bilan débit + recettes
     except Exception as e:
         print(e)
         return False
-    chemin=f"./exports/{Annee}/{MoisAnnee}"
+    chemin=f"./exports/{compte}{Annee}/{MoisAnnee}"
     gain,depenses,bilan=traitement(df,chemin,MoisAnnee,"Mois")
     return True,gain,depenses,bilan
 

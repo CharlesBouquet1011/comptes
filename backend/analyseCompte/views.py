@@ -47,8 +47,10 @@ def pretraitement(request):
     if request.method=="PUT":
             if "a_traiter.csv" not in os.listdir("./donnees_a_traiter"):
                 return JsonResponse({"error" : "Veuillez upload un fichier avant"}, status=404)
-
-            [doublons,dateInvalides,cheminDates,cheminDoublons]=m.pretraitement("./donnees_a_traiter/a_traiter.csv")
+            
+            data=json.loads(request.body.decode('utf-8'))
+            compte=data.get("compte")
+            [doublons,dateInvalides,cheminDates,cheminDoublons]=m.pretraitement("./donnees_a_traiter/a_traiter.csv",compte)
             cheminDates=Domaine+cheminDates
             cheminDoublons=Domaine+cheminDoublons
             if not doublons.empty and not dateInvalides.empty:
@@ -78,11 +80,16 @@ def analyseAnnee(request):
         try:
             data=json.loads(request.body.decode('utf-8'))
             annee=data.get("annee") 
-            nonErr,gain,depenses,bilan=a.AnalyseAnnee(annee) #ici l'année est un string
+            compte=data.get("compte")
+            nonErr,gain,depenses,bilan=a.AnalyseAnnee(annee,compte) #ici l'année est un string
+            if compte is None:
+                compte=""
+            else:
+                compte+="/"
             if not nonErr:
                 return JsonResponse({"error": "une erreur est survenue"},status=500)
             else:
-                chem=f"{Domaine}exports/{annee}"
+                chem=f"{Domaine}exports/{compte}{annee}"
                 
                 chemins=[f"{chem}/Depenses_{annee}.jpg",f"{chem}/Gains_{annee}.jpg",f"{chem}/Bilan_{annee}.jpg"]
                 return JsonResponse({"chemins":chemins,"noms":[f"Depenses {annee}", f"Gains {annee}", f"Bilan {annee}"],"bilan":[depenses,gain,bilan]},status=200)
@@ -105,12 +112,16 @@ def analyseMois(request):
             data=json.loads(request.body.decode('utf-8')) #ce n'est pas un fichier qui est envoyé donc il faut décoder
             annee=data.get("annee") 
             mois=data.get("mois")
-            nonErr,gain,depenses,bilan=a.AnalyseMois(annee,mois)
+            compte=data.get("compte")
+            nonErr,gain,depenses,bilan=a.AnalyseMois(annee,mois,compte)
+            if compte is None:
+                compte=""
+            else:
+                compte+="/"
             if not nonErr:
                 return JsonResponse({"error": "une erreur est survenue"},status=500)
             else:
-                chem=f"{Domaine}exports/{annee}/{mois}_{annee}"
-                nom="Mois"
+                chem=f"{Domaine}exports/{compte}{annee}/{mois}_{annee}"
                 chemins=[f"{chem}/Depenses_{mois}_{annee}.jpg",f"{chem}/Gains_{mois}_{annee}.jpg",f"{chem}/Bilan_{mois}_{annee}.jpg"]
                 return JsonResponse({"chemins":chemins,"noms":[f"Depenses {mois} {annee}", f"Gains {mois} {annee}", f"Bilan {mois} {annee}"],"bilan":[depenses,gain,bilan]},status=200)
         except json.JSONDecodeError as e:
@@ -130,7 +141,8 @@ def somme(request):
             data=json.load(request.body)
             criteres=data.get("criteres") #critere: {clé:(valeur,strict)} ou la clé est une colonne du DataFrame, valeur est une valeur que ça peut prendre et strict est utile pour les chaines (si strict: == sinon substring)
             colonnes=data.get("colonnes") #colonnes dont on veut obtenir la somme liste [] Chaque colonne doit être dans le DataFrame
-            df,doublon=m.importPasse()
+            compte=data.get("compte")
+            df,doublon=m.importPasse(compte)
             df=a.filtre(df,criteres)
             sortie={colonne: df[colonnes].sum() for colonne in colonnes}
             return JsonResponse(sortie, status=200)
@@ -145,14 +157,32 @@ def get_columns(request):
     """
     if request.method=="GET":
         try:
-            df=m.importPasse()
+            compte=data.get("compte")
+            df=m.importPasse(compte)
             data=[col for col in df.columns]
             return JsonResponse({"data":data},status=200)
         except Exception as e:
             print("Une erreur est survenue:",e)
             return JsonResponse({"error":"Erreur serveur"},status=500)
 # Create your views here.
+def comptes(request):
+    """renvoie la liste des comptes actuellement enregistrés"""
+    if request.method=="GET":
 
+            comptes= [compte for compte in os.listdir("./exports")]
+            return JsonResponse({"comptes":comptes},status=200)
+
+def creeCompte(request):
+    """Crée le dossier correspondant au nouveau compte""" 
+    if request.method=="POST":
+        try:
+            data=json.loads(request.body.decode("utf-8"))
+            compte=data.get("compte")
+            os.makedirs(f"./exports/{compte}",exist_ok=True)
+            return JsonResponse({"ok":"compte créé"},status=200)
+        except Exception as e:
+            print("Erreur: ",e)
+            return JsonResponse({"error":"Erreur serveur"},status=500)
 def filtre(request): #on affichera le DF en forme de tableau seulement pour les entrées correspondantes au critère
     pass    
 def calcImpots(request): #probablement compliqué 
