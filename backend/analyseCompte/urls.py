@@ -7,11 +7,11 @@ urlpatterns = [
     path("upload/",views.upload), #puis mettre view.fonction avec fonction dans le fichier views, fait
     path("annee/",views.analyseAnnee), #fait
     path("mois/",views.analyseMois), #fait
-    path("verify/",views.verify),
+    path("verify/",views.verify), #fait je crois
     path("filtrer/",views.filtre),
     path("comptes/",views.comptes),
     path("pretraitement/",views.pretraitement),#fait
-    path("CreeCompte/",views.creeCompte),
+    path("CreeCompte/",views.creeCompte),#fait
     path("calcImpots/",views.calcImpots),
     path("camembert/",views.camembert),
     path("calcTotal",views.somme) #à compléter

@@ -23,4 +23,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/",include("analyseCompte.urls")),
     path("csrf/",views.get_csrf_token)
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static("/doublons/",document_root=settings.EXPORT_DOUBLONS)+ static("/DatesIncorrectes/",document_root=settings.EXPORT_DATESINCORRECTES)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + static("/doublons/",document_root=settings.EXPORT_DOUBLONS)+ static("/DatesIncorrectes/",document_root=settings.EXPORT_DATESINCORRECTES)+ static("/verification/",document_root=settings.EXPORT_VERIFICATION)

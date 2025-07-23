@@ -18,6 +18,7 @@ MEDIA_URL="/exports/"
 MEDIA_ROOT=os.path.join(BASE_DIR,"exports")
 EXPORT_DOUBLONS=os.path.join(BASE_DIR, "doublons")
 EXPORT_DATESINCORRECTES=os.path.join(BASE_DIR,"DatesIncorrectes")
+EXPORT_VERIFICATION=os.path.join(BASE_DIR,"verification")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 

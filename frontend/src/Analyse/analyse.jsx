@@ -181,6 +181,8 @@ function Analyse({choix}){
 export function UploadForm(){
   const [reload,setReload]=useState(0)
   const [succes,setSucces]=useState(false)
+  const [selection,setSelection]=useState(null)
+  const [erreur,setErreur]=useState("")
   async function sendFile(file){
     try{
       console.log("envoi")
@@ -200,12 +202,14 @@ export function UploadForm(){
       console.log("Fichier envoyé avec succès")
       setSucces(true)
       setReload(1^reload)
+      setErreur("")
     }
     else{
       const data=await response.json()
 
       console.log(data.error)
       setSucces(false)
+      setErreur(data.error)
     }
     }
     catch (err){
@@ -227,11 +231,111 @@ export function UploadForm(){
         </section>
     )}
     </Dropzone>
-    {succes ? <PreTraitement reload={reload} />: <></> }
+    {erreur &&(
+      <>
+      <br />
+      {erreur}
+      </>
+    )}
+    {succes &&(<>
+      <h4>Choisissez ce que vous voulez faire du fichier</h4>
+      <table>
+        <tbody>
+          <td>
+            <label>
+              <input type="radio" name="choix" value="1" onClick={()=>setSelection(1)} />
+              Ajout des données à la base de données locale    
+            </label>
+          </td>
+          <td>
+            <label>
+              <input type="radio" name="choix" value="2" onClick={()=>setSelection(2)}/>
+              Verification du fichier avec la base de données locale (pour vérifier qu'aucune transaction n'a été ajoutée par erreur)
+              <br />Attention, vous devez fournir l'intégralité des données avec le fichier   
+            </label>
+          </td>
+        </tbody>
+      </table>
+    </>
+    )}
+    
+    {succes && selection===1 ? <PreTraitement reload={reload} />: <></> }
+    {succes && selection===2 ? <Verification reload={reload} /> : <></>}
     </>)
 
 }
+function Verification({reload}){
+  const {account}=useAccount()
+  const [data,setData]=useState({"cheminPasse":null,"cheminFichier":null,"problemePasse":null,"problemeFichier":null,"error":null})
+  const cookie=getCookie("csrftoken")
+  const verification=useCallback(async ()=>{
+    const response = await fetch("http://localhost:8000/api/verify/",{
+      method:"POST",
+      credentials:"include",
+      headers:{
+        "X-CSRFToken":cookie
+      },
+      body:JSON.stringify({"compte":account})
+    })
+    if (response.ok){
+      const donnee=await response.json()
+      setData({"cheminPasse":donnee.cheminPasse,"cheminFichier":donnee.cheminFichier,"problemePasse":donnee.problemePasse,"problemeFichier":donnee.problemeFichier,"error":donnee.error})
+    }else{
+      setData({"error":"Erreur serveur"})
+      console.log("Erreur lors de la vérification des fichiers")
 
+    }
+  },[account])
+  useEffect(()=>{verification()},[reload,verification])
+  return(<>
+      {data.problemePasse && (
+        <div className="bg-red-100 text-red-800 border border-red-400 rounded p-4 mb-2 overflow-x-auto">
+          <p className="font-bold">Données en trop dans la base de données par rapport au fichier</p>
+          <a
+            href={data.cheminPasse}
+            target="_blank"
+            rel="noopener noreferrer" //sinon react n'est pas content pour le noreferrer
+            className="underline text-blue-800"
+          >
+            Télécharger les données incorrectes (bd)
+          </a>
+        </div>
+      )}
+
+      {data.problemeFichier && (
+        <div className="bg-red-100 text-red-800 border border-red-400 rounded p-4 mb-2 overflow-x-auto">
+          <p className="font-bold">Données en trop dans le fichier par rapport à la base de données :</p>
+          <a
+            href={data.cheminFichier}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-blue-800"
+          >
+            Télécharger les données incorrectes (fichier)
+          </a>
+        </div>
+      )}
+      {
+        !data.problemeFichier && !data.problemePasse && !data.error && (
+          <div className="bg-green-100 text-green-800 border border-green-400 rounded p-4 mb-2">
+            <p className="font-bold">La vérification s'est terminée sans détecter d'anomalie</p>
+          </div>
+        )
+      }
+      {!data.error &&(
+        
+        <div className="bg-red-100 text-red-800 border border-red-400 rounded p-4 mb-2">
+          <p className="font-bold">{data.error}</p>
+          
+        </div>
+      
+      )}
+  
+  
+  </>)
+
+
+}
 
 function PreTraitement({reload}){
   const {account}=useAccount()

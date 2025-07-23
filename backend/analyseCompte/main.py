@@ -40,9 +40,9 @@ def initialisation():
     os.makedirs("./donnees_a_traiter",exist_ok=True)
     os.makedirs("./DatesIncorrectes",exist_ok=True)
     os.makedirs("./exports",exist_ok=True)
+    os.makedirs("./verification",exist_ok=True)
 
 def importPasse(compte):
-    
     
     #exports=os.listdir('../exports')
     #dfpasses=[importer('../exports/'+i,0) for i in exports] #référence passe en index (colonne 0) dans les enregistrements
@@ -52,12 +52,11 @@ def importPasse(compte):
         compte="/"+compte
     dfpasses=[]
     for dossier in os.listdir(f"./exports{compte}"):
-        for sousDos in os.listdir(f"./exports/{dossier}"):
+        for sousDos in os.listdir(f"./exports{compte}/{dossier}"):
             if "." in sousDos: continue #on ignore les éventuels fichiers présents ici
-            for fichier in os.listdir(f"./exports/{dossier}/{sousDos}"):
+            for fichier in os.listdir(f"./exports{compte}/{dossier}/{sousDos}"):
                 if ".csv" in fichier: #on garde seulement les fichiers csv
-                    dfpasses.append(importer(f"./exports/{dossier}/{sousDos}/{fichier}",0))
-
+                    dfpasses.append(importer(f"./exports{compte}/{dossier}/{sousDos}/{fichier}",0))
     
     
     if not dfpasses:
@@ -73,7 +72,7 @@ def concatener(liste_df:list[pd.DataFrame]):
         df.reset_index(inplace=True)
         if df.empty or df.isna().all(axis=None):
             liste_del.append(i) #si le df est vide ou alors contient que des NaN, on le marque pour suppression
-    for i in liste_del[::-1]: #on inverse pour pas changé l'index des futurs df à supprimer
+    for i in liste_del[::-1]: #on parcourt à l'envers pour pas changer l'index des futurs df à supprimer
         liste_df.pop(i) #on supprime les df marqués
     dftemp=pd.concat(liste_df,axis=0,ignore_index=True,join='outer')
     doublons=dftemp.duplicated(keep=False) #subset = None quand on vérifie les duplications sur l'index
@@ -87,8 +86,9 @@ def concatener(liste_df:list[pd.DataFrame]):
     ATTENTION, Des doublons ont été détectés dans les comptes passés
     !!!!        
     """)
-        chemin="./doublons/"+datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')+".csv"
-        df_doublons.to_csv(chemin,sep=";",date_format="%d/%m/%Y")
+        chemin="./doublons/"+datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')+".xlsx"
+        with pd.ExcelWriter(chemin,engine="xlsxwriter",date_format="%d/%m/%Y") as writer:
+            df_doublons.to_excel(writer)
         
     return uniques,df_doublons,chemin
     #à gauche, ce qu'on veut garder (pas les doublons), à droite ce qu'on a drop (les lignes problématiques)
@@ -109,8 +109,10 @@ def verifDates(df:pd.DataFrame,dfpasse:pd.DataFrame): #si pas de problem, df vid
 
               !!!!!
 """)
-        chemin="./DatesIncorrectes/"+datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')+".csv"
-        dfproblem.to_csv(chemin,sep=";",date_format="%d/%m/%Y")
+        chemin="./DatesIncorrectes/"+datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')+".xlsx"
+        with pd.ExcelWriter(chemin,engine='xlsxwriter',date_format="%d/%m/%Y") as writer:
+
+            dfproblem.to_excel(writer)
 
 
     return dfproblem,chemin

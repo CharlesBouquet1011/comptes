@@ -190,7 +190,18 @@ def calcImpots(request): #probablement compliqué
 
 def verify(request): #vérifie que les données enregistrées correspondent aux données de la banque jusqu'à la date de la dernière donnée enregistrée
     #permet de détecter aisément une incohérence
-    pass
-
+    if request.method=="POST":
+            data=json.loads(request.body.decode("utf-8"))
+            print(data)
+            compte=data.get("compte")
+            print("compte, ",compte)
+            fichier="./donnees_a_traiter/a_traiter.csv"
+            cheminPasse,cheminFichier,ProblemePasse,problemeFichier=a.verification(fichier,compte)
+            if cheminPasse==False and cheminFichier==False and ProblemePasse==False and problemeFichier==False:
+                return JsonResponse({"error":"Veuillez d'abord importer des fichiers de référence"},status=404)
+            cheminPasse=Domaine+cheminPasse
+            cheminFichier=Domaine+cheminFichier
+            return JsonResponse({"cheminPasse":cheminPasse,"cheminFichier":cheminFichier,"problemePasse":ProblemePasse,"problemeFichier":problemeFichier},status=200)
+        
 def camembert(request): #voir la répartition des dépenses
     pass

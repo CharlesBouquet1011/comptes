@@ -116,6 +116,47 @@ def filtre(df:pd.DataFrame,criteres:dict[tuple[str,bool]]):
             df=df[df[crit.str.contains(val,na=False)]]
     return df
 
+def verification(fichier,compte):
+    """
+    le fichier doit contenir TOUTES les transactions du compte/des comptes (déconseillé de faire tous les comptes mais pris en charge)
+    Vérifie que chaque entrée dans le df du fichier a une correspondance dans les DF enregistrés et inversement
+    """
+    from . import main as m
+    
+    df=m.importer(fichier,3)
+    df["source"]="fichier"
+    
+    dfPasse,dfPasseDoublon=m.importPasse(compte)
+    if dfPasse.empty or dfPasse.isna().all(axis=None):
+        return False,False,False,False #il faudra retourner une erreur ici
+
+
+    df.reset_index(inplace=True)
+    dfPasse.reset_index(inplace=True)
+    dfPasse["source"]="passe"
+    full=pd.concat([df,dfPasse],join="outer",axis=0,ignore_index=True)
+    doublons=full.duplicated(keep=False,subset=full.columns.difference(["source"]))
+    uniques=full[~doublons]
+    uniques.set_index('Reference',inplace=True)
+    uniquePasse=uniques[uniques["source"]=="passe"]
+    uniquesFichier=uniques[uniques["source"]=="fichier"]
+    uniquePasse.drop(axis=1,inplace=True,columns=["source"])
+    uniquesFichier.drop(axis=1,inplace=True,columns=["source"])
+    chemin=f"./verification/{datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')}"
+    os.makedirs(chemin,exist_ok=True)
+    chemin1=f"{chemin}/local.xlsx"
+    chemin2=f"{chemin}/fichier.xlsx"
+    problemePasse=not uniquePasse.empty
+    problemeFichier=not uniquesFichier.empty
+    if problemePasse:
+        with pd.ExcelWriter(chemin1,engine="xlsxwriter",date_format="%d/%m/%Y") as writer:
+            uniquePasse.to_excel(writer)
+    if problemeFichier:
+        with pd.ExcelWriter(chemin2,engine="xlsxwriter",date_format="%d/%m/%Y") as writer:
+            uniquesFichier.to_excel(writer)
+
+    return chemin1,chemin2,problemePasse,problemeFichier
+
 
 if __name__=="__main__":
     AnalyseAnnee("2025")
