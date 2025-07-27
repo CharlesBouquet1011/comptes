@@ -13,6 +13,7 @@ export function AccountProvider({children}){
     const [tempAccount,setTempAccount]=useState("")
     const [account,setAccount]=useState("")
     const cookie=getCookie("csrftoken")
+    const [loadPage,setLoadPage]=useState(false)
     const fetchAccountList= useCallback(async () =>{
         
         const response = await fetch("http://localhost:8000/api/comptes/",{
@@ -47,7 +48,11 @@ export function AccountProvider({children}){
         },
         body:JSON.stringify({"compte":account})
       })
-    
+    if (response.ok){
+        setLoadPage(true)
+    }else{
+        setLoadPage(false)
+    }
 
 
 
@@ -55,7 +60,7 @@ export function AccountProvider({children}){
   },[account])
     useEffect(()=>{createAccount()},[account])
 
-    if (account===""){
+    if (!loadPage || account===""){
         return(<>
             {accountList.map((val)=>(
                 <div key={val}>
