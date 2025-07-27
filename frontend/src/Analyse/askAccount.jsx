@@ -58,7 +58,7 @@ export function AccountProvider({children}){
     if (account===""){
         return(<>
             {accountList.map((val)=>(
-                <div>
+                <div key={val}>
                     <input type="radio" onClick={()=>setTempAccount(val)} />
                     <label> {val}</label>
                 </div>
@@ -69,7 +69,8 @@ export function AccountProvider({children}){
                 
             </div>
             <br/>
-            <button onClick={()=>setAccount(tempAccount)}>Choisir Compte </button>
+            {tempAccount!=="tousComptes"?<button onClick={()=>setAccount(tempAccount)}>Choisir Compte </button> : <p>Veuillez choisir un autre nom de compte </p>}
+            
         
             <br />
             <button onClick={()=>setAccount(null)}>Analyser tous les comptes </button>

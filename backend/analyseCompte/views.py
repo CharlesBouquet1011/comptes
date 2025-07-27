@@ -81,20 +81,20 @@ def analyseAnnee(request):
             data=json.loads(request.body.decode('utf-8'))
             annee=data.get("annee") 
             compte=data.get("compte")
-            nonErr,gain,depenses,bilan=a.AnalyseAnnee(annee,compte) #ici l'année est un string
-            if compte is None:
-                compte=""
-            else:
-                compte+="/"
+            nonErr,gain,depenses,bilan,chem=a.AnalyseAnnee(annee,compte) #ici l'année est un string
+            chem=Domaine+chem
             if not nonErr:
                 return JsonResponse({"error": "une erreur est survenue"},status=500)
             else:
-                chem=f"{Domaine}exports/{compte}{annee}"
+                
                 
                 chemins=[f"{chem}/Depenses_{annee}.jpg",f"{chem}/Gains_{annee}.jpg",f"{chem}/Bilan_{annee}.jpg"]
                 return JsonResponse({"chemins":chemins,"noms":[f"Depenses {annee}", f"Gains {annee}", f"Bilan {annee}"],"bilan":[depenses,gain,bilan]},status=200)
         except json.JSONDecodeError as e:
             return JsonResponse({"error": "JSON Invalide"},status=406)
+        except Exception as e:
+            print("Erreur serveur :",e)
+            return JsonResponse({"error":"Erreur serveur"},status=500)
     
 
 def analyseMois(request):
@@ -113,17 +113,18 @@ def analyseMois(request):
             annee=data.get("annee") 
             mois=data.get("mois")
             compte=data.get("compte")
-            nonErr,gain,depenses,bilan=a.AnalyseMois(annee,mois,compte)
+            nonErr,gain,depenses,bilan,chem=a.AnalyseMois(annee,mois,compte)
+            if not nonErr:
+                return JsonResponse({"error": "une erreur est survenue"},status=500)
+            chem=Domaine+chem
             if compte is None:
                 compte=""
             else:
                 compte+="/"
-            if not nonErr:
-                return JsonResponse({"error": "une erreur est survenue"},status=500)
-            else:
-                chem=f"{Domaine}exports/{compte}{annee}/{mois}_{annee}"
-                chemins=[f"{chem}/Depenses_{mois}_{annee}.jpg",f"{chem}/Gains_{mois}_{annee}.jpg",f"{chem}/Bilan_{mois}_{annee}.jpg"]
-                return JsonResponse({"chemins":chemins,"noms":[f"Depenses {mois} {annee}", f"Gains {mois} {annee}", f"Bilan {mois} {annee}"],"bilan":[depenses,gain,bilan]},status=200)
+            
+            
+            chemins=[f"{chem}/Depenses_{mois}_{annee}.jpg",f"{chem}/Gains_{mois}_{annee}.jpg",f"{chem}/Bilan_{mois}_{annee}.jpg"]
+            return JsonResponse({"chemins":chemins,"noms":[f"Depenses {mois} {annee}", f"Gains {mois} {annee}", f"Bilan {mois} {annee}"],"bilan":[depenses,gain,bilan]},status=200)
         except json.JSONDecodeError as e:
             print("erreur JSON :",e)
             return JsonResponse({"error": "JSON Invalide"},status=400)
@@ -169,7 +170,7 @@ def comptes(request):
     """renvoie la liste des comptes actuellement enregistrés"""
     if request.method=="GET":
 
-            comptes= [compte for compte in os.listdir("./exports")]
+            comptes= [compte for compte in os.listdir("./exports") if compte!="tousComptes" and "." not in compte]
             return JsonResponse({"comptes":comptes},status=200)
 
 def creeCompte(request):
@@ -178,6 +179,8 @@ def creeCompte(request):
         try:
             data=json.loads(request.body.decode("utf-8"))
             compte=data.get("compte")
+            if compte=="tousComptes":
+                return JsonResponse({"error":"Veuillez choisir un autre nom de compte"},status=403)
             os.makedirs(f"./exports/{compte}",exist_ok=True)
             return JsonResponse({"ok":"compte créé"},status=200)
         except Exception as e:
@@ -192,9 +195,7 @@ def verify(request): #vérifie que les données enregistrées correspondent aux 
     #permet de détecter aisément une incohérence
     if request.method=="POST":
             data=json.loads(request.body.decode("utf-8"))
-            print(data)
             compte=data.get("compte")
-            print("compte, ",compte)
             fichier="./donnees_a_traiter/a_traiter.csv"
             cheminPasse,cheminFichier,ProblemePasse,problemeFichier=a.verification(fichier,compte)
             if cheminPasse==False and cheminFichier==False and ProblemePasse==False and problemeFichier==False:

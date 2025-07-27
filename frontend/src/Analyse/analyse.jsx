@@ -241,19 +241,22 @@ export function UploadForm(){
       <h4>Choisissez ce que vous voulez faire du fichier</h4>
       <table>
         <tbody>
-          <td>
-            <label>
-              <input type="radio" name="choix" value="1" onClick={()=>setSelection(1)} />
-              Ajout des données à la base de données locale    
-            </label>
-          </td>
-          <td>
-            <label>
-              <input type="radio" name="choix" value="2" onClick={()=>setSelection(2)}/>
-              Verification du fichier avec la base de données locale (pour vérifier qu'aucune transaction n'a été ajoutée par erreur)
-              <br />Attention, vous devez fournir l'intégralité des données avec le fichier   
-            </label>
-          </td>
+          <tr>
+            <td>
+              <label>
+                <input type="radio" name="choix" value="1" onClick={()=>setSelection(1)} />
+                Ajout des données à la base de données locale    
+              </label>
+            </td>
+          
+            <td>
+              <label>
+                <input type="radio" name="choix" value="2" onClick={()=>setSelection(2)}/>
+                Verification du fichier avec la base de données locale (pour vérifier qu'aucune transaction n'a été ajoutée par erreur)
+                <br />Attention, vous devez fournir l'intégralité des données avec le fichier   
+              </label>
+            </td>
+          </tr>
         </tbody>
       </table>
     </>
@@ -385,28 +388,28 @@ function PreTraitement({reload}){
 
       {donnee.df && (
         <div className="bg-red-100 text-red-800 border border-red-400 rounded p-4 mb-2 overflow-x-auto">
-          <p className="font-bold">Données incorrectes :</p>
+          <p className="font-bold">Données dont la date est incohérente :</p>
           <a
             href={donnee.df}
             target="_blank"
             rel="noopener noreferrer" //sinon react n'est pas content pour le noreferrer
             className="underline text-blue-800"
           >
-            Télécharger les données incorrectes (df)
+            Télécharger les données incorrectes (dates incohérentes avec celles dans la bd)
           </a>
         </div>
       )}
 
       {donnee.df2 && (
         <div className="bg-red-100 text-red-800 border border-red-400 rounded p-4 mb-2 overflow-x-auto">
-          <p className="font-bold">Données incorrectes :</p>
+          <p className="font-bold">Données en double :</p>
           <a
             href={donnee.df2}
             target="_blank"
             rel="noopener noreferrer"
             className="underline text-blue-800"
           >
-            Télécharger les données incorrectes (df2)
+            Télécharger les données incorrectes (données en double avec la bd)
           </a>
         </div>
       )}

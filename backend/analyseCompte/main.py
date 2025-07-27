@@ -41,6 +41,7 @@ def initialisation():
     os.makedirs("./DatesIncorrectes",exist_ok=True)
     os.makedirs("./exports",exist_ok=True)
     os.makedirs("./verification",exist_ok=True)
+    os.makedirs("./exports/tousComptes/",exist_ok=True)
 
 def importPasse(compte):
     
@@ -48,16 +49,19 @@ def importPasse(compte):
     #dfpasses=[importer('../exports/'+i,0) for i in exports] #référence passe en index (colonne 0) dans les enregistrements
     if compte is None:
         compte=""
+        comptes=["/"+i for i in os.listdir("./exports") if "." not in i]
     else:
         compte="/"+compte
+        comptes=[compte]
     dfpasses=[]
-    for dossier in os.listdir(f"./exports{compte}"):
-        for sousDos in os.listdir(f"./exports{compte}/{dossier}"):
-            if "." in sousDos: continue #on ignore les éventuels fichiers présents ici
-            for fichier in os.listdir(f"./exports{compte}/{dossier}/{sousDos}"):
-                if ".csv" in fichier: #on garde seulement les fichiers csv
-                    dfpasses.append(importer(f"./exports{compte}/{dossier}/{sousDos}/{fichier}",0))
-    
+    for compte in comptes:
+        for dossier in os.listdir(f"./exports{compte}"):
+            for sousDos in os.listdir(f"./exports{compte}/{dossier}"):
+                if "." in sousDos: continue #on ignore les éventuels fichiers présents ici
+                for fichier in os.listdir(f"./exports{compte}/{dossier}/{sousDos}"):
+                    if ".csv" in fichier: #on garde seulement les fichiers csv
+                        dfpasses.append(importer(f"./exports{compte}/{dossier}/{sousDos}/{fichier}",0))
+        
     
     if not dfpasses:
         return pd.DataFrame(),pd.DataFrame()
@@ -123,7 +127,7 @@ def Export(df:pd.DataFrame,compte):
     
     """
     if compte is None:
-        compte=""
+        compte="tousComptes/" #pas censé arriver
     else:
         compte+="/"
     dateDebut=df["Date de comptabilisation"].min()
@@ -171,5 +175,5 @@ def pretraitement(fichier,compte):
     dfpasse,dfpasseDoublons=importPasse(compte)
     dfproblemDate,cheminDates=verifDates(df1,dfpasse)
     dftot,doublons,cheminDoublons=concatener([df1,dfpasse])
-    Export(dftot)
+    Export(dftot,compte)
     return doublons,dfproblemDate,cheminDates[2:],cheminDoublons[2:] #si l'un des deux n'est pas vide, alors il y a une incohérence dans les données

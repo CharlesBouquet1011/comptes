@@ -25,21 +25,28 @@ def AnalyseAnnee(annee:str,compte)->bool:
     dfs=[]
     if compte is None:
         compte=""
+        comptes=[compte+"/" for compte in os.listdir("./exports") if "." not in compte and compte!="tousComptes"]
+        chemin=f"./exports/tousComptes/{annee}"
+        os.makedirs(chemin,exist_ok=True) #il n'y a pas eu la fonction prétraitement qui a créé le dossier pour ce cas là
     else:
         compte+="/"
-    if annee not in os.listdir(f"./exports/{compte}"):
-        print("Dossier inexistant")
-        return False,0,0,0
-    for dossier in os.listdir(f"./exports/{compte}{annee}"):
-        if "." in dossier: continue #on ignore les éventuels fichiers présents ici
-        for fichier in os.listdir(f"./exports/{compte}{annee}/{dossier}"):
-            if ".csv" in fichier: #on garde que les csv
-                dfs.append(m.importer(f"./exports/{compte}{annee}/{dossier}/{fichier}",0))
+        comptes=[compte]
+        chemin=f"./exports/{compte}{annee}"
+        if annee not in os.listdir(f"./exports/{compte}") and len(comptes)==1:
+            print("Dossier inexistant")
+            return False,0,0,0,0
+    for compte in comptes:
+        if annee not in os.listdir(f"./exports/{compte}"): continue
+        for dossier in os.listdir(f"./exports/{compte}{annee}"):
+            if "." in dossier: continue #on ignore les éventuels fichiers présents ici
+            for fichier in os.listdir(f"./exports/{compte}{annee}/{dossier}"):
+                if ".csv" in fichier: #on garde que les csv
+                    dfs.append(m.importer(f"./exports/{compte}{annee}/{dossier}/{fichier}",0))
     
     df,dfD,chemin2=m.concatener(dfs)
-    chemin=f"./exports/{compte}{annee}"
+    
     gain,depenses,bilan=traitement(df,chemin,annee,"Annee")
-    return True,gain,depenses,bilan
+    return True,gain,depenses,bilan,chemin
 
 def traitement(df:pd.DataFrame,chemin:str,nom:str,typ:str):
     if typ=="Mois":
@@ -80,20 +87,26 @@ def AnalyseMois(Annee:str,Mois:str,compte)->bool: #annee YYYY mois mm
     affiche et sauvegarde des graphiques des dépenses par jour, crédits par jour et bilan (crédit - dépenses) par jour
     """
     from . import main as m
-    if compte is None:
-        compte=""
-    else:
-        compte+="/"
     MoisAnnee=f"{Mois}_{Annee}"
-    fichier=f"./exports/{compte}{Annee}/{MoisAnnee}/{MoisAnnee}.csv"
     try:
-        df=m.importer(fichier,0) #ce df est le bilan débit + recettes
+        if compte is None:
+            compte="tousComptes/"
+            fichiers=[f"./exports/{c}/{Annee}/{MoisAnnee}/{MoisAnnee}.csv" for c in os.listdir("./exports") if "." not in c and c!="tousComptes"]
+            dfs=[m.importer(fichier,0) for fichier in fichiers]
+            df,doublons,cheminDoublon=m.concatener(dfs)
+            chemin=f"./exports/tousComptes/{Annee}/{MoisAnnee}"
+            os.makedirs(chemin,exist_ok=True)
+        else:
+            compte+="/"
+            fichier=f"./exports/{compte}{Annee}/{MoisAnnee}/{MoisAnnee}.csv"
+            df=m.importer(fichier,0) #ce df est le bilan débit + recettes
+            chemin=f"./exports/{compte}{Annee}/{MoisAnnee}"
+
+        gain,depenses,bilan=traitement(df,chemin,MoisAnnee,"Mois")
+        return True,gain,depenses,bilan,chemin
     except Exception as e:
-        print(e)
-        return False
-    chemin=f"./exports/{compte}{Annee}/{MoisAnnee}"
-    gain,depenses,bilan=traitement(df,chemin,MoisAnnee,"Mois")
-    return True,gain,depenses,bilan
+            print("Erreur: ",e)
+            return False,0,0,0,0
 
 def filtreparLibelle(df:pd.DataFrame,libelle:str,mois=None)->pd.DataFrame:
     """
@@ -125,14 +138,21 @@ def verification(fichier,compte):
     
     df=m.importer(fichier,3)
     df["source"]="fichier"
+    if compte is None:
+        comptes=[compte for compte in os.listdir("./exports") if "." not in compte and compte!="tousComptes"]
+        dfPasses=[m.importer(compte)[0] for compte in comptes]
+        dfPasse,dfPasseDoublon,chemindfpassesDoublons=m.concatener(dfPasses)
+    else:    
+        dfPasse,dfPasseDoublon=m.importPasse(compte)
+        if dfPasse.empty or dfPasse.isna().all(axis=None):
+            return False,False,False,False #il faudra retourner une erreur ici
     
-    dfPasse,dfPasseDoublon=m.importPasse(compte)
-    if dfPasse.empty or dfPasse.isna().all(axis=None):
-        return False,False,False,False #il faudra retourner une erreur ici
-
-
-    df.reset_index(inplace=True)
+    
+    
     dfPasse.reset_index(inplace=True)
+   
+    df.reset_index(inplace=True)
+    
     dfPasse["source"]="passe"
     full=pd.concat([df,dfPasse],join="outer",axis=0,ignore_index=True)
     doublons=full.duplicated(keep=False,subset=full.columns.difference(["source"]))
