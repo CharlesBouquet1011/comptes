@@ -377,7 +377,7 @@ function PreTraitement({reload}){
     
     
   },[account])
-  useEffect(()=>{  traitement()},[reload])
+  useEffect(()=>{  traitement()},[reload,traitement])
   return(<>
     {donnee.warning && (
         <div className="bg-yellow-100 text-yellow-800 border border-yellow-400 rounded p-4 mb-2">

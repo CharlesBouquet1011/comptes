@@ -58,7 +58,7 @@ export function AccountProvider({children}){
 
 
   },[account])
-    useEffect(()=>{createAccount()},[account])
+    useEffect(()=>{createAccount()},[createAccount])
 
     if (!loadPage || account===""){
         return(<>
