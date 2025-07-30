@@ -22,7 +22,7 @@ function AnalyseFormMonth({month}){//format MM-yyyy ou l'inverse jsplus ce qu'il
       })
       if (response.ok){
         const donnees=await response.json()
-        setData([donnees.noms,donnees.chemins,donnees.bilan])
+        setData([donnees.noms,donnees.chemins,donnees.bilan,donnees.camemberts,donnees.legende])
       }else{
         console.log("erreur serveur lors de l'analyse par mois")
       }
@@ -61,6 +61,27 @@ function AnalyseForm({data}){
     ))}
       </tr>
       <tr>
+      {data[3].map(val=>(
+        
+      <td key={val?val:999999999}>
+      {val?      <img src={val} alt="Repartition des comptes"/>: <p>NA</p>
+}
+      </td>
+        
+    ))}
+      </tr>
+      <tr>
+      {data[4].map(val=>(
+        
+      <td key={val?val:999999998}>
+      {val?      <img src={val} alt="Legende Repartition des comptes"/>: <p>NA</p>
+}
+      </td>
+        
+    ))}
+      </tr>
+
+      <tr>
       {data[2].map(val=>(
         <td key={val}>
           Total : {val}
@@ -94,7 +115,7 @@ function AnalyseFormYear({annee}){
     })
     if (response.ok){
       const donnee=await response.json()
-      setData([donnee.noms,donnee.chemins,donnee.bilan])
+      setData([donnee.noms,donnee.chemins,donnee.bilan,donnee.camemberts,donnee.legende])
     }
     else{
       console.error("Erreur lors de la récupération des données")

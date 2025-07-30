@@ -9,11 +9,10 @@ urlpatterns = [
     path("mois/",views.analyseMois), #fait
     path("verify/",views.verify), #fait je crois
     path("filtrer/",views.filtre),
-    path("comptes/",views.comptes),
+    path("comptes/",views.comptes),#fait
     path("pretraitement/",views.pretraitement),#fait
     path("CreeCompte/",views.creeCompte),#fait
     path("calcImpots/",views.calcImpots),
-    path("camembert/",views.camembert),
     path("calcTotal",views.somme) #à compléter
 
     

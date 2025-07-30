@@ -68,15 +68,30 @@ def traitement(df:pd.DataFrame,chemin:str,nom:str,typ:str):
         a="Depenses par jour"
         b="Gain par jour"
         c="Bilan par jour"
+        d="Repartition depenses par mois"
+        e="Repartition gains par mois"
     elif typ=="Annee":
         a="Depenses par mois"
         b="Gain par mois"
         c="Bilan par mois"
+        d="Repartition depenses par an"
+        e="Repartition gains par an"
     gainparjour=gain.groupby("Date de comptabilisation")["Credit"].sum()
     sauvegarderFigures(depensesparjour,a,f"{chemin}/Depenses_{nom}")
     sauvegarderFigures(gainparjour, b,f"{chemin}/Gains_{nom}")
     
     sauvegarderFigures(bilanParJour,c,f"{chemin}/Bilan_{nom}")
+    
+    
+    
+    depensesparLib=depenses.groupby("Libelle simplifie")["Debit"].sum() #ATTENTION le groupby renvoie une SERIES pas un DATAFRAME (donc pour rajouter une entrée dans la series c'est la même syntaxe que pour rajouter une colonne dans un df)
+    gainparLib=gain.groupby("Libelle simplifie")["Credit"].sum()
+
+        
+    Figurecamembert(depensesparLib,d,f"{chemin}/Repartition_Depenses_{nom}")
+    Figurecamembert(gainparLib,e,f"{chemin}/Repartition_Gains_{nom}")
+
+
     return gain["Credit"].sum(),depenses["Debit"].sum(),bilan["Bilan"].sum()
 def AnalyseMois(Annee:str,Mois:str,compte)->bool: #annee YYYY mois mm
 
@@ -177,6 +192,127 @@ def verification(fichier,compte):
 
     return chemin1,chemin2,problemePasse,problemeFichier
 
+def Figurecamembert(df, titre, chemin, legende_separee=True):
+    """
+    Met en forme les données et les affiches sous forme de diagramme camembert, la mise en page (couleurs,police,légende) est faite par IA parce que j'avais la flemme et que je suis pas designer
+    
+    """
+    dfCopy = df.copy().astype(float)
+    
+    dfCopy = dfCopy.sort_values(ascending=False)
+    
+    # Regrouper les petites valeurs (< 2%) dans "Autres"
+    seuil = 2.0
+    petites_valeurs = dfCopy[dfCopy < seuil]
+    grandes_valeurs = dfCopy[dfCopy >= seuil]
+    
+    if len(petites_valeurs) > 0:
+        autres_valeur = petites_valeurs.sum()
+        grandes_valeurs['Autres'] = autres_valeur
+        dfCopy = grandes_valeurs
+    
+    # Générer des couleurs distinctes
+    colors = plt.cm.Set3(range(len(dfCopy)))
+    
+    # ========== GRAPHIQUE PRINCIPAL ==========
+    fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+    
+    # Créer le camembert
+    wedges, texts, autotexts = ax.pie(
+        dfCopy.values,
+        labels=None,  
+        autopct=lambda pct: f'{pct:.1f}%' if pct > 3 else '',
+        startangle=90,
+        counterclock=False,
+        colors=colors,
+        textprops={'fontsize': 12, 'weight': 'bold'}
+    )
+    
+    # Améliorer la visibilité des pourcentages
+    for autotext in autotexts:
+        autotext.set_color('black')
+        autotext.set_fontweight('bold')
+        autotext.set_fontsize(11)
+    
+    # Titre
+    ax.set_title(titre, fontsize=18, fontweight='bold', pad=20)
+    
+    plt.tight_layout()
+    plt.savefig(f"{chemin}.jpg", dpi=300, bbox_inches='tight', 
+                facecolor='white', edgecolor='none')
+    plt.close()
+    
+    # ========== LÉGENDE SÉPARÉE ==========
+    if legende_separee:
+        CreerLegendeManuelle(dfCopy, colors, f"{chemin}_legende")
+
+        #_creer_legende_separee(dfCopy, colors, f"{chemin}_legende")
+
+
 
 if __name__=="__main__":
     AnalyseAnnee("2025")
+
+
+# Alternative : Version manuelle avec dessin pixel par pixel
+def CreerLegendeManuelle(dfCopy, colors, chemin_legende):
+    """Version manuelle qui dessine pixel par pixel - ZERO blanc garanti (fait par IA)"""
+    
+    import numpy as np
+    from PIL import Image, ImageDraw, ImageFont
+    
+    total = dfCopy.sum() if hasattr(dfCopy, 'sum') else sum(dfCopy.values())
+    
+    # Paramètres
+    font_size = 12
+    line_height = 18
+    color_box_size = 14
+    text_margin = 8
+    
+    # Calculer dimensions exactes
+    labels = []
+    for i, (label, value) in enumerate(dfCopy.items()):
+        pct = (value / total) * 100
+        labels.append(f'{label} ({pct:.1f}%)')
+    
+    # Estimer la largeur du texte (approximation)
+    max_text_width = max(len(label) for label in labels) * 7  # ~7px par caractère
+    
+    width = color_box_size + text_margin + max_text_width + 10
+    height = len(labels) * line_height + 10
+    
+    # Créer l'image
+    img = Image.new('RGB', (width, height), 'white')
+    draw = ImageDraw.Draw(img)
+    
+    # Essayer de charger une police (fallback sur police par défaut)
+    try:
+        font = ImageFont.truetype("arial.ttf", font_size)
+    except:
+        try:
+            font = ImageFont.load_default()
+        except:
+            font = None
+    
+    # Dessiner chaque élément de légende
+    y_pos = 5
+    for i, (label, color) in enumerate(zip(labels, colors)):
+        # Convertir couleur matplotlib en RGB
+        if hasattr(color, '__len__') and len(color) >= 3:
+            rgb_color = tuple(int(c * 255) for c in color[:3])
+        else:
+            rgb_color = (128, 128, 128)  # Gris par défaut
+        
+        # Dessiner le carré de couleur
+        draw.rectangle([5, y_pos, 5 + color_box_size, y_pos + color_box_size], 
+                      fill=rgb_color, outline='black', width=1)
+        
+        # Dessiner le texte
+        text_x = 5 + color_box_size + text_margin
+        draw.text((text_x, y_pos), label, fill='black', font=font)
+        
+        y_pos += line_height
+    
+    # Sauvegarder
+    img.save(f"{chemin_legende}.jpg", quality=95, optimize=True)
+    print(f"Légende manuelle créée : {chemin_legende}.jpg ({width}x{height}px)")

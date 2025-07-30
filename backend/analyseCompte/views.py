@@ -87,9 +87,11 @@ def analyseAnnee(request):
                 return JsonResponse({"error": "une erreur est survenue"},status=500)
             else:
                 
-                
+                camemberts=[f"{chem}/Repartition_Depenses_{annee}.jpg",f"{chem}/Repartition_Gains_{annee}.jpg",None]
+                legende=[f"{chem}/Repartition_Depenses_{annee}_legende.jpg",f"{chem}/Repartition_Gains_{annee}_legende.jpg",None]
                 chemins=[f"{chem}/Depenses_{annee}.jpg",f"{chem}/Gains_{annee}.jpg",f"{chem}/Bilan_{annee}.jpg"]
-                return JsonResponse({"chemins":chemins,"noms":[f"Depenses {annee}", f"Gains {annee}", f"Bilan {annee}"],"bilan":[depenses,gain,bilan]},status=200)
+                return JsonResponse({"chemins":chemins,"noms":[f"Depenses {annee}", f"Gains {annee}", f"Bilan {annee}"],"bilan":[depenses,gain,bilan],"camemberts":camemberts,
+                                     "legende":legende},status=200)
         except json.JSONDecodeError as e:
             return JsonResponse({"error": "JSON Invalide"},status=406)
         except Exception as e:
@@ -124,7 +126,10 @@ def analyseMois(request):
             
             
             chemins=[f"{chem}/Depenses_{mois}_{annee}.jpg",f"{chem}/Gains_{mois}_{annee}.jpg",f"{chem}/Bilan_{mois}_{annee}.jpg"]
-            return JsonResponse({"chemins":chemins,"noms":[f"Depenses {mois} {annee}", f"Gains {mois} {annee}", f"Bilan {mois} {annee}"],"bilan":[depenses,gain,bilan]},status=200)
+            camemberts=[f"{chem}/Repartition_Depenses_{mois}_{annee}.jpg",f"{chem}/Repartition_Gains_{mois}_{annee}.jpg",None]
+            legende=[f"{chem}/Repartition_Depenses_{mois}_{annee}_legende.jpg",f"{chem}/Repartition_Gains_{mois}_{annee}_legende.jpg",None]
+            return JsonResponse({"chemins":chemins,"noms":[f"Depenses {mois} {annee}", f"Gains {mois} {annee}", f"Bilan {mois} {annee}"],
+                                 "bilan":[depenses,gain,bilan],"camemberts":camemberts,"legende":legende},status=200)
         except json.JSONDecodeError as e:
             print("erreur JSON :",e)
             return JsonResponse({"error": "JSON Invalide"},status=400)
@@ -204,5 +209,3 @@ def verify(request): #vérifie que les données enregistrées correspondent aux 
             cheminFichier=Domaine+cheminFichier
             return JsonResponse({"cheminPasse":cheminPasse,"cheminFichier":cheminFichier,"problemePasse":ProblemePasse,"problemeFichier":problemeFichier},status=200)
         
-def camembert(request): #voir la répartition des dépenses
-    pass
