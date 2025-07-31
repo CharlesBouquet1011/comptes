@@ -14,6 +14,7 @@ export function AccountProvider({children}){
     const [account,setAccount]=useState("")
     const cookie=getCookie("csrftoken")
     const [loadPage,setLoadPage]=useState(false)
+    const [displayDragDrop,setDisplayDragDrop]=useState(true)
     const fetchAccountList= useCallback(async () =>{
         
         const response = await fetch("http://localhost:8000/api/comptes/",{
@@ -62,29 +63,59 @@ export function AccountProvider({children}){
 
     if (!loadPage || account===""){
         return(<>
-            {accountList.map((val)=>(
-                <div key={val}>
-                    <input type="radio" onClick={()=>setTempAccount(val)} />
-                    <label> {val}</label>
-                </div>
-            ))}
-            <div>
-                <input type="text" onChange={(event)=>setTempAccount(event.target.value)}/>
-                <label>Nouveau compte </label>
-                
-            </div>
-            <br/>
-            {tempAccount!=="tousComptes"?<button onClick={()=>setAccount(tempAccount)}>Choisir Compte </button> : <p>Veuillez choisir un autre nom de compte </p>}
-            
-        
-            <br />
-            <button onClick={()=>setAccount(null)}>Analyser tous les comptes </button>
-        </>)
+    <div className="space-y-4 bg-white p-6 rounded-xl shadow-md w-full max-w-md mx-auto">
+      <h2 className="text-lg font-semibold text-gray-800">Sélectionnez un compte</h2>
+      
+      {accountList.map((val) => (
+        <div key={val} className="flex items-center gap-2">
+          <input
+            type="radio"
+            name="account"
+            onClick={() => setTempAccount(val)}
+            className="accent-blue-600"
+          />
+          <label className="text-gray-700">{val}</label>
+        </div>
+      ))}
+
+      <div className="flex items-center gap-2 mt-4">
+        <input
+          type="text"
+          placeholder="Entrez un nouveau compte"
+          onChange={(event) => setTempAccount(event.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <label className="text-sm text-gray-600">Nouveau compte</label>
+      </div>
+
+      <div className="mt-6">
+        {tempAccount !== "tousComptes" ? (
+          <button
+            onClick={() => setAccount(tempAccount)}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+          >
+            Choisir ce compte
+          </button>
+        ) : (
+          <p className="text-red-500 text-sm">Veuillez choisir un autre nom de compte</p>
+        )}
+      </div>
+
+      <div className="mt-4">
+        <button
+          onClick={() => setAccount(null)}
+          className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition"
+        >
+          Analyser tous les comptes
+        </button>
+      </div>
+    </div>
+  </>)
     }
 
         
         return(
-            <AccountContext.Provider value={{account,setAccount,accountList}}>
+            <AccountContext.Provider value={{account,setAccount,accountList,displayDragDrop,setDisplayDragDrop}}>
                 {children}
             </AccountContext.Provider>
         )

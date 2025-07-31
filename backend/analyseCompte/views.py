@@ -54,7 +54,7 @@ def pretraitement(request):
             cheminDates=Domaine+cheminDates
             cheminDoublons=Domaine+cheminDoublons
             if not doublons.empty and not dateInvalides.empty:
-                return JsonResponse({"warning": "des doublons et des dates incorrectes ont été  détectées (transaction ajoutée plus vieille que la dernière enregistrée)","df":cheminDates,"df2":cheminDoublons},status=200)
+                return JsonResponse({"warning": "des doublons et des dates incorrectes ont été  détectées (une transaction ajoutée est plus vieille que la dernière enregistrée)","df":cheminDates,"df2":cheminDoublons},status=200)
             if not doublons.empty:
                 return JsonResponse({"warning": "Des doublons ont été détectés, ces données ont été ignorées dans le traitement","df2":cheminDoublons}, status=200)
             #l'orientation transforme le Dataframe en lise de dictionnaires (dont les clés sont les colonnes et les valeurs, les valeurs de cette ligne)

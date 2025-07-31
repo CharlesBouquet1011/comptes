@@ -41,56 +41,80 @@ function AnalyseForm({data}){
   }
   else{
     return(
-      <table>
-        <thead>
-        <tr>
-      {data[0].map(val=>(
-      <th key={val}>
-        {val}
-      </th>
-      ))}
-        </tr>
+      <table className="w-full max-w-5xl mx-auto mt-10 border border-gray-200 shadow-md rounded-lg overflow-hidden bg-white">
+        <thead className="bg-gray-100">
+          <tr>
+            {data[0].map(val => (
+              <th key={val} className="px-4 py-2 text-sm text-gray-700 font-semibold border-b border-gray-200 text-center">
+                {val}
+              </th>
+            ))}
+          </tr>
         </thead>
         <tbody>
-        <tr>
-      {data[1].map(val=>(
-      <td key={val}>
-      <img src={val} alt="Donnees des comptes"/>
-      </td>
-        
-    ))}
-      </tr>
-      <tr>
-      {data[3].map(val=>(
-        
-      <td key={val?val:999999999}>
-      {val?      <img src={val} alt="Repartition des comptes"/>: <p>NA</p>
-}
-      </td>
-        
-    ))}
-      </tr>
-      <tr>
-      {data[4].map(val=>(
-        
-      <td key={val?val:999999998}>
-      {val?      <img src={val} alt="Legende Repartition des comptes"/>: <p>NA</p>
-}
-      </td>
-        
-    ))}
-      </tr>
+          {/* Graphiques dépenses des comptes */}
+          <tr className="bg-white">
+            {data[1].map(val => (
+              <td key={val} className="p-4 border-b border-gray-100 text-center">
+                <div className="bg-gray-50 rounded-md p-2 shadow-sm inline-block">
+                  <img
+                    src={val}
+                    alt="Graphique dépenses des comptes"
+                    className="max-w-[240px] h-auto object-contain"
+                  />
+                </div>
+              </td>
+            ))}
+          </tr>
 
-      <tr>
-      {data[2].map(val=>(
-        <td key={val}>
-          Total : {val}
-        </td>
-      ))}
-      </tr>
+          {/* Totaux */}
+          <tr className="bg-gray-50">
+            {data[2].map(val => (
+              <td key={val} className="py-3 text-center text-sm text-gray-800 font-medium border-b border-gray-200">
+                Total : {val}
+              </td>
+            ))}
+          </tr>
 
-      </tbody>
-    </table>
+          {/* Camembert Répartition des comptes */}
+          <tr className="bg-white">
+            {data[3].map(val => (
+              <td key={val || 999999999} className="p-4 text-center border-b border-gray-100">
+                {val ? (
+                  <div className="bg-gray-50 rounded-md p-2 shadow-sm inline-block">
+                    <img
+                      src={val}
+                      alt="Camembert Répartition des comptes"
+                      className="max-w-[240px] h-auto object-contain"
+                    />
+                  </div>
+                ) : (
+                  <p className="text-gray-400 italic">NA</p>
+                )}
+              </td>
+            ))}
+          </tr>
+
+          {/* Légende Répartition des comptes */}
+          <tr className="bg-gray-50">
+            {data[4].map(val => (
+              <td key={val || 999999998} className="p-4 text-center">
+                {val ? (
+                  <div className="bg-gray-50 rounded-md p-2 shadow-sm inline-block">
+                    <img
+                      src={val}
+                      alt="Légende Répartition des comptes"
+                      className="max-w-[120px] h-auto object-contain"
+                    />
+                  </div>
+                ) : (
+                  <p className="text-gray-400 italic">NA</p>
+                )}
+              </td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
     )
   }
 }
@@ -134,20 +158,42 @@ function AnalyseFormYear({annee}){
 
 export function ChooseAnalyse(){
   const [choix,setChoix]=useState("")
-  const {setAccount}=useAccount()
+  const {setAccount,setDisplayDragDrop}=useAccount()
 
 
   if (choix===""){
     return(<>
-    <h4>Choisissez Comment vous voulez analyser:</h4>
-    <label>
-      <input type="radio" name="choix" value="Annee" onClick={()=>setChoix("Annee")}/>
-      Analyse par Annee    
-    </label>
-    <label>
-      <input type="radio" name="choix" value="Mois" onClick={()=>setChoix("Mois")}/>
-      Analyse par Mois    
-    </label>
+    <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
+  Choisissez comment vous voulez analyser :
+</h4>
+
+<div className="flex flex-col sm:flex-row gap-4">
+  <label className="flex items-center space-x-3 cursor-pointer border border-gray-300 rounded-md p-4 hover:border-indigo-500 transition-colors">
+    <input
+      type="radio"
+      name="choix"
+      value="Annee"
+      onClick={() => {setChoix("Annee");
+        setDisplayDragDrop(false)
+      }}
+      className="form-radio text-indigo-600"
+    />
+    <span className="text-gray-700">Analyse par Année</span>
+  </label>
+
+  <label className="flex items-center space-x-3 cursor-pointer border border-gray-300 rounded-md p-4 hover:border-indigo-500 transition-colors">
+    <input
+      type="radio"
+      name="choix"
+      value="Mois"
+      onClick={() => {setChoix("Mois");
+        setDisplayDragDrop(false)
+      }}
+      className="form-radio text-indigo-600"
+    />
+    <span className="text-gray-700">Analyse par Mois</span>
+  </label>
+</div>
   </>)
   }
   else{
@@ -155,8 +201,11 @@ export function ChooseAnalyse(){
     <Analyse choix={choix}/>
     <br />
     <button onClick={()=>{setChoix("");
-      setAccount("")
-    }}> Reset </button>
+      setAccount("");
+      setDisplayDragDrop(true);
+    }}
+    className="mt-10 px-6 py-3 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition-colors"
+    > Reset </button>
     </>)
   }
   
@@ -178,6 +227,8 @@ function Analyse({choix}){
             showYearPicker
             dateFormat="yyyy"
             placeholderText='Choisir une année'
+             className="mt-4 w-48 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700"
+
   />
   <AnalyseFormYear annee={date.getFullYear().toString()} />
   </>
@@ -188,6 +239,8 @@ function Analyse({choix}){
             showMonthYearPicker
             dateFormat="yyyy"
             placeholderText='Choisir une année'
+            className="mt-4 w-48 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700"
+
   />
 <AnalyseFormMonth month={moisString} />
   </>
@@ -204,6 +257,8 @@ export function UploadForm(){
   const [succes,setSucces]=useState(false)
   const [selection,setSelection]=useState(null)
   const [erreur,setErreur]=useState("")
+  const {displayDragDrop}=useAccount()
+
   async function sendFile(file){
     try{
       console.log("envoi")
@@ -241,47 +296,87 @@ export function UploadForm(){
 
   }
     return(<>
-    <h4>Veuillez mettre le fichier csv que vous voulez analyser</h4>    
-    <Dropzone onDrop={acceptedFiles => {sendFile(acceptedFiles[0])}} multiple={false} accept={{ 'text/csv': ['.csv'] }} >
-    {({getRootProps, getInputProps}) => (
-        <section>
-        <div {...getRootProps()}>
-            <input {...getInputProps()} />
-            <p>mettez le fichier ici ou cliquer pour le choisir</p>
-        </div>
-        </section>
-    )}
-    </Dropzone>
-    {erreur &&(
-      <>
-      <br />
-      {erreur}
-      </>
-    )}
-    {succes &&(<>
-      <h4>Choisissez ce que vous voulez faire du fichier</h4>
-      <table>
-        <tbody>
-          <tr>
-            <td>
-              <label>
-                <input type="radio" name="choix" value="1" onClick={()=>setSelection(1)} />
-                Ajout des données à la base de données locale    
-              </label>
-            </td>
-          
-            <td>
-              <label>
-                <input type="radio" name="choix" value="2" onClick={()=>setSelection(2)}/>
-                Verification du fichier avec la base de données locale (pour vérifier qu'aucune transaction n'a été ajoutée par erreur)
-                <br />Attention, vous devez fournir l'intégralité des données avec le fichier   
-              </label>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    {displayDragDrop &&(<>
+      <h4 className="text-xl font-semibold mb-4 text-gray-800">
+        Veuillez mettre le fichier CSV que vous voulez analyser
+      </h4>
+
+      <Dropzone
+        onDrop={acceptedFiles => sendFile(acceptedFiles[0])}
+        multiple={false}
+        accept={{ 'text/csv': ['.csv'] }}
+      >
+        {({ getRootProps, getInputProps }) => (
+          <section>
+            <div
+              {...getRootProps()}
+              className="cursor-pointer border-2 border-dashed border-gray-300 rounded-md p-8 flex flex-col items-center justify-center hover:border-indigo-500 transition-colors"
+            >
+              <input {...getInputProps()} />
+              <p className="text-gray-500 text-center text-sm">
+                Glissez-déposez le fichier ici ou cliquez pour choisir un fichier
+              </p>
+            </div>
+          </section>
+        )}
+      </Dropzone>
     </>
+
     )}
+    
+
+{erreur && (
+  <p className="mt-4 text-red-600 font-medium">
+    {erreur}
+  </p>
+)}
+
+{succes && (
+  <>
+    <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
+      Choisissez ce que vous voulez faire du fichier
+    </h4>
+    <table className="w-full max-w-xl border-collapse border border-gray-200">
+      <tbody>
+        <tr className="hover:bg-gray-50">
+          <td className="p-4 border border-gray-200">
+            <label className="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="radio"
+                name="choix"
+                value="1"
+                onClick={() => setSelection(1)}
+                className="form-radio text-indigo-600"
+              />
+              <span className="text-gray-700">
+                Ajout des données à la base de données locale
+              </span>
+            </label>
+          </td>
+          <td className="p-4 border border-gray-200">
+            <label className="flex flex-col space-y-2 cursor-pointer">
+              <span className="flex items-center space-x-3">
+                <input
+                  type="radio"
+                  name="choix"
+                  value="2"
+                  onClick={() => setSelection(2)}
+                  className="form-radio text-indigo-600"
+                />
+                <span className="text-gray-700">
+                  Vérification du fichier avec la base de données locale
+                </span>
+              </span>
+              <small className="text-xs text-red-500">
+                Attention, vous devez fournir l'intégralité des données avec le fichier
+              </small>
+            </label>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </>
+)}
     
     {succes && selection===1 ? <PreTraitement reload={reload} />: <></> }
     {succes && selection===2 ? <Verification reload={reload} /> : <></>}
@@ -313,13 +408,13 @@ function Verification({reload}){
   useEffect(()=>{verification()},[reload,verification])
   return(<>
       {data.problemePasse && (
-        <div className="bg-red-100 text-red-800 border border-red-400 rounded p-4 mb-2 overflow-x-auto">
-          <p className="font-bold">Données en trop dans la base de données par rapport au fichier</p>
+        <div className="mb-4 w-full max-w-3xl mx-auto bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded-md shadow-sm">
+          <p className="font-semibold mb-1">Données en trop dans la base de données par rapport au fichier :</p>
           <a
             href={data.cheminPasse}
             target="_blank"
-            rel="noopener noreferrer" //sinon react n'est pas content pour le noreferrer
-            className="underline text-blue-800"
+            rel="noopener noreferrer"
+            className="underline text-sm text-blue-700 hover:text-blue-900 transition-colors"
           >
             Télécharger les données incorrectes (bd)
           </a>
@@ -327,32 +422,29 @@ function Verification({reload}){
       )}
 
       {data.problemeFichier && (
-        <div className="bg-red-100 text-red-800 border border-red-400 rounded p-4 mb-2 overflow-x-auto">
-          <p className="font-bold">Données en trop dans le fichier par rapport à la base de données :</p>
+        <div className="mb-4 w-full max-w-3xl mx-auto bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded-md shadow-sm">
+          <p className="font-semibold mb-1">Données en trop dans le fichier par rapport à la base de données :</p>
           <a
             href={data.cheminFichier}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline text-blue-800"
+            className="underline text-sm text-blue-700 hover:text-blue-900 transition-colors"
           >
             Télécharger les données incorrectes (fichier)
           </a>
         </div>
       )}
-      {
-        !data.problemeFichier && !data.problemePasse && !data.error && (
-          <div className="bg-green-100 text-green-800 border border-green-400 rounded p-4 mb-2">
-            <p className="font-bold">La vérification s'est terminée sans détecter d'anomalie</p>
-          </div>
-        )
-      }
-      {!data.error &&(
-        
-        <div className="bg-red-100 text-red-800 border border-red-400 rounded p-4 mb-2">
-          <p className="font-bold">{data.error}</p>
-          
+
+      {!data.problemeFichier && !data.problemePasse && !data.error && (
+        <div className="mb-4 w-full max-w-3xl mx-auto bg-green-50 border-l-4 border-green-400 text-green-800 p-4 rounded-md shadow-sm">
+          <p className="font-semibold">La vérification s'est terminée sans détecter d'anomalie</p>
         </div>
-      
+      )}
+
+      {data.error && (
+        <div className="mb-4 w-full max-w-3xl mx-auto bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded-md shadow-sm">
+          <p className="font-semibold">{data.error}</p>
+        </div>
       )}
   
   
@@ -400,44 +492,45 @@ function PreTraitement({reload}){
   },[account])
   useEffect(()=>{  traitement()},[reload,traitement])
   return(<>
-    {donnee.warning && (
-        <div className="bg-yellow-100 text-yellow-800 border border-yellow-400 rounded p-4 mb-2">
-          <p className="font-bold">Avertissement :</p>
-          <p>{donnee.warning}</p>
-        </div>
-      )}
+                {donnee.warning && (
+              <div className="mb-4 w-full max-w-3xl mx-auto bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-md shadow-sm">
+                <p className="font-semibold mb-1">Avertissement :</p>
+                <p className="text-sm">{donnee.warning}</p>
+              </div>
+            )}
 
-      {donnee.df && (
-        <div className="bg-red-100 text-red-800 border border-red-400 rounded p-4 mb-2 overflow-x-auto">
-          <p className="font-bold">Données dont la date est incohérente :</p>
-          <a
-            href={donnee.df}
-            target="_blank"
-            rel="noopener noreferrer" //sinon react n'est pas content pour le noreferrer
-            className="underline text-blue-800"
-          >
-            Télécharger les données incorrectes (dates incohérentes avec celles dans la bd)
-          </a>
-        </div>
-      )}
+            {donnee.df && (
+              <div className="mb-4 w-full max-w-3xl mx-auto bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded-md shadow-sm">
+                <p className="font-semibold mb-1">Données dont la date est incohérente :</p>
+                <a
+                  href={donnee.df}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-sm text-blue-700 hover:text-blue-900 transition-colors"
+                >
+                  Télécharger les données incorrectes (dates incohérentes avec celles dans la base de données)
+                </a>
+              </div>
+            )}
 
-      {donnee.df2 && (
-        <div className="bg-red-100 text-red-800 border border-red-400 rounded p-4 mb-2 overflow-x-auto">
-          <p className="font-bold">Données en double :</p>
-          <a
-            href={donnee.df2}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline text-blue-800"
-          >
-            Télécharger les données incorrectes (données en double avec la bd)
-          </a>
-        </div>
-      )}
-      {donnee.ok && (
-        <div className="bg-green-100 text-green-800 border border-green-400 rounded p-4 mb-2">
-          <p className="font-bold">{donnee.ok}</p>
-        </div>
-      )}
-  </>)
+            {donnee.df2 && (
+              <div className="mb-4 w-full max-w-3xl mx-auto bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded-md shadow-sm">
+                <p className="font-semibold mb-1">Données en double :</p>
+                <a
+                  href={donnee.df2}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-sm text-blue-700 hover:text-blue-900 transition-colors"
+                >
+                  Télécharger les données incorrectes (données déjà présentes dans la base)
+                </a>
+              </div>
+            )}
+
+            {donnee.ok && (
+              <div className="mb-4 w-full max-w-3xl mx-auto bg-green-50 border-l-4 border-green-400 text-green-800 p-4 rounded-md shadow-sm">
+                <p className="font-semibold">{donnee.ok}</p>
+              </div>
+            )}
+          </>)
 }

@@ -2,14 +2,17 @@ import './App.css';
 import {ChooseAnalyse, UploadForm} from "./Analyse/analyse.jsx"
 import { CSRFContext } from './VarGlob/csrf.jsx';
 import { AccountProvider } from './Analyse/askAccount.jsx';
+import './output.css'
 function App() {
   return (
     <CSRFContext>
-    <div className="App">
+    <div className="App flex flex-col items-center justify-center min-h-screen px-4 bg-gray-50">
       <AccountProvider>
-        <UploadForm></UploadForm>
-      
+        
+        <UploadForm />
+        
         <ChooseAnalyse /> 
+        
       </AccountProvider>
     </div>
     </CSRFContext>
