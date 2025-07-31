@@ -71,7 +71,7 @@ function AnalyseForm({data}){
           <tr className="bg-gray-50">
             {data[2].map(val => (
               <td key={val} className="py-3 text-center text-sm text-gray-800 font-medium border-b border-gray-200">
-                Total : {val}
+                Total : {val} €
               </td>
             ))}
           </tr>
