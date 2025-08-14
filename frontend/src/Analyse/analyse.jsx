@@ -2,7 +2,6 @@ import { useEffect,useState,useCallback } from 'react'
 import Dropzone from 'react-dropzone'
 import { getCookie } from '../VarGlob/csrf'
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import {useAccount } from './askAccount';
 
 function AnalyseFormMonth({month}){//format MM-yyyy ou l'inverse jsplus ce qu'il faut au backend

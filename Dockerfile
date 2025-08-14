@@ -1,8 +1,11 @@
 FROM python:3.13.5-alpine3.22 AS backend
 WORKDIR /app
-COPY ./backend /app
+COPY ./backend/analyseCompte /app/analyseCompte
+COPY ./backend/SiteComptabilite /app/SiteComptabilite
+COPY ./backend/manage.py /app/manage.py
+COPY ./backend/db.sqlite3 /app/db.sqlite3
 EXPOSE 8000
-RUN pip install --no-cache-dir pandas django django-cors-headers xlsxwriter matplotlib numpy Pillow
+RUN pip install --no-cache-dir pandas django xlsxwriter matplotlib numpy Pillow
 
 RUN adduser -S django && addgroup -S django
 RUN chown -R django:django /app && chmod 755 -R /app

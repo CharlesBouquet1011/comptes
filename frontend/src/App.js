@@ -2,7 +2,6 @@ import './App.css';
 import {ChooseAnalyse, UploadForm} from "./Analyse/analyse.jsx"
 import { CSRFContext } from './VarGlob/csrf.jsx';
 import { AccountProvider } from './Analyse/askAccount.jsx';
-import './output.css'
 function App() {
   return (
     <CSRFContext>

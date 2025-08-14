@@ -13,9 +13,9 @@ services:
       - django_DI:/app/DatesIncorrectes
       - django_DAT:/app/donnees_a_traiter
       - django_doublons:/app/doublons
-      - django_export:/app/export
-    
-
+      - django_export:/app/exports
+    depends_on:
+      - init-volumes
   react:
     container_name: react
     build:
@@ -47,8 +47,22 @@ services:
       - django_DI:/app/DatesIncorrectes
       - django_DAT:/app/donnees_a_traiter
       - django_doublons:/app/doublons
+      - django_export:/app/exports
+    depends_on:
+      - init-volumes
+      - react
+  init-volumes:
+    image: busybox #comme pour kubernetes, il faut donner les perms dans le volume avant
+    volumes:
+      - django_DI:/app/DatesIncorrectes
+      - django_DAT:/app/donnees_a_traiter
+      - django_doublons:/app/doublons
       - django_export:/app/export
-
+    command: >
+      sh -c "
+        mkdir -p /app/DatesIncorrectes /app/donnees_a_traiter /app/doublons /app/export /app/exports &&
+        chmod -R 777 /app/DatesIncorrectes /app/donnees_a_traiter /app/doublons /app/export /app/exports
+      "
 
 
 

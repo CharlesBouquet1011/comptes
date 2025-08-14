@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-s707^adeivvznflzhi1lw5pa9f!t@w&e+(2e@!^=9t0r@g=m#+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["backend"]
 
 
 # Application definition
@@ -40,12 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
     'analyseCompte.apps.AnalysecompteConfig'
     ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -56,19 +54,17 @@ MIDDLEWARE = [
     'analyseCompte.middleware.DisableMediaCacheMiddleware'
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
-
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:80",
+    "http://127.0.0.1:80",
+    "http://localhost",
 ]
 CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_HTTPONLY = False  # important ! sinon React ne peut pas le lire
 CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_SAMESITE = "Lax"
-CORS_ALLOW_CREDENTIALS = True
 ROOT_URLCONF = 'SiteComptabilite.urls'
 
 TEMPLATES = [

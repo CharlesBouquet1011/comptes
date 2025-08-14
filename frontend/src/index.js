@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+
+import "react-datepicker/dist/react-datepicker.css"; // CSS externe
+import "./tailwind.css"; // Tailwind
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 

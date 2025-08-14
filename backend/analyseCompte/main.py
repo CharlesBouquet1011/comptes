@@ -102,7 +102,7 @@ def verifDates(df:pd.DataFrame,dfpasse:pd.DataFrame): #si pas de problem, df vid
     Vérifie que la dernière date du passé soit plus vieille que la première date du présent (sinon il y a un problème)
     """ 
     if dfpasse.empty: #il n'y a pas de données passées
-        return pd.DataFrame()
+        return pd.DataFrame(),""
     date_plus_recente_passee=dfpasse["Date de comptabilisation"].max()
     dfproblem=df[df["Date de comptabilisation"]<=date_plus_recente_passee]
     chemin=""
@@ -120,7 +120,7 @@ def verifDates(df:pd.DataFrame,dfpasse:pd.DataFrame): #si pas de problem, df vid
 
 
     return dfproblem,chemin
-
+    
 def Export(df:pd.DataFrame,compte):
     """
     Exporte les données par mois dans des csv
