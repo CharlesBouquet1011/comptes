@@ -6,6 +6,7 @@ import {useAccount } from './askAccount';
 
 function AnalyseFormMonth({month}){//format MM-yyyy ou l'inverse jsplus ce qu'il faut au backend
   const [data,setData]=useState([])
+  const [error,setError]=useState("")
   const [annee,mois]=month.split("-")
   const {account}=useAccount()
   const fetchData=useCallback(async ()=>{
@@ -22,8 +23,11 @@ function AnalyseFormMonth({month}){//format MM-yyyy ou l'inverse jsplus ce qu'il
       if (response.ok){
         const donnees=await response.json()
         setData([donnees.noms,donnees.chemins,donnees.bilan,donnees.camemberts,donnees.legende])
+        setError("")
       }else{
         console.log("erreur serveur lors de l'analyse par mois")
+        const donnees=await response.json()
+        setError(donnees.error)
       }
     }
     catch (e){
@@ -31,95 +35,108 @@ function AnalyseFormMonth({month}){//format MM-yyyy ou l'inverse jsplus ce qu'il
     }
   },[month,account])
   useEffect(()=>{fetchData()},[fetchData])
-  return(<AnalyseForm data={data} />)
+  return(<AnalyseForm data={data} error={error} />)
 }
-function AnalyseForm({data}){
+function AnalyseForm({data,error}){
   console.log(data)
-  if (data.length===0){
+  if (data.length===0 && !error){
     return(<>Chargement ... <br /></>)
   }
   else{
-    return(
-      <table className="w-full max-w-5xl mx-auto mt-10 border border-gray-200 shadow-md rounded-lg overflow-hidden bg-white">
-        <thead className="bg-gray-100">
-          <tr>
-            {data[0].map(val => (
-              <th key={val} className="px-4 py-2 text-sm text-gray-700 font-semibold border-b border-gray-200 text-center">
-                {val}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {/* Graphiques dépenses des comptes */}
-          <tr className="bg-white">
-            {data[1].map(val => (
-              <td key={val} className="p-4 border-b border-gray-100 text-center">
-                <div className="bg-gray-50 rounded-md p-2 shadow-sm inline-block">
-                  <img
-                    src={val}
-                    alt="Graphique dépenses des comptes"
-                    className="max-w-[240px] h-auto object-contain"
-                  />
-                </div>
-              </td>
-            ))}
-          </tr>
-
-          {/* Totaux */}
-          <tr className="bg-gray-50">
-            {data[2].map(val => (
-              <td key={val} className="py-3 text-center text-sm text-gray-800 font-medium border-b border-gray-200">
-                Total : {val} €
-              </td>
-            ))}
-          </tr>
-
-          {/* Camembert Répartition des comptes */}
-          <tr className="bg-white">
-            {data[3].map(val => (
-              <td key={val || 999999999} className="p-4 text-center border-b border-gray-100">
-                {val ? (
+    if (error){
+      return(<div className="mb-4 w-full max-w-3xl mx-auto bg-red-50 border-l-4 border-red-400 text-red-800 p-4 rounded-md shadow-sm">
+        Erreur: {error}</div>)
+    }else{
+      return(
+        <table className="w-full max-w-5xl mx-auto mt-10 border border-gray-200 shadow-md rounded-lg overflow-hidden bg-white">
+          <thead className="bg-gray-100">
+            <tr>
+              {data[0].map(val => (
+                <th key={val} className="px-4 py-2 text-sm text-gray-700 font-semibold border-b border-gray-200 text-center">
+                  {val}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {/* Graphiques dépenses des comptes */}
+            <tr className="bg-white">
+              {data[1].map(val => (
+                <td key={val} className="p-4 border-b border-gray-100 text-center">
                   <div className="bg-gray-50 rounded-md p-2 shadow-sm inline-block">
-                    <img
-                      src={val}
-                      alt="Camembert Répartition des comptes"
-                      className="max-w-[240px] h-auto object-contain"
-                    />
+                    <a href={val} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={val}
+                        alt="Graphique dépenses des comptes"
+                        className="max-w-[240px] h-auto object-contain"
+                      />
+                    </a>
                   </div>
-                ) : (
-                  <p className="text-gray-400 italic">NA</p>
-                )}
-              </td>
-            ))}
-          </tr>
+                </td>
+              ))}
+            </tr>
 
-          {/* Légende Répartition des comptes */}
-          <tr className="bg-gray-50">
-            {data[4].map(val => (
-              <td key={val || 999999998} className="p-4 text-center">
-                {val ? (
-                  <div className="bg-gray-50 rounded-md p-2 shadow-sm inline-block">
-                    <img
-                      src={val}
-                      alt="Légende Répartition des comptes"
-                      className="max-w-[120px] h-auto object-contain"
-                    />
-                  </div>
-                ) : (
-                  <p className="text-gray-400 italic">NA</p>
-                )}
-              </td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
-    )
-  }
+            {/* Totaux */}
+            <tr className="bg-gray-50">
+              {data[2].map(val => (
+                <td key={val} className="py-3 text-center text-sm text-gray-800 font-medium border-b border-gray-200">
+                  Total : {val} €
+                </td>
+              ))}
+            </tr>
+
+            {/* Camembert Répartition des comptes */}
+            <tr className="bg-white">
+              {data[3].map(val => (
+                <td key={val || 999999999} className="p-4 text-center border-b border-gray-100">
+                  {val ? (
+                    <div className="bg-gray-50 rounded-md p-2 shadow-sm inline-block">
+                      <a href={val} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={val}
+                          alt="Camembert Répartition des comptes"
+                          className="max-w-[240px] h-auto object-contain"
+                        />
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 italic">NA</p>
+                  )}
+                </td>
+              ))}
+            </tr>
+
+            {/* Légende Répartition des comptes */}
+            <tr className="bg-gray-50">
+              {data[4].map(val => (
+                <td key={val || 999999998} className="p-4 text-center">
+                  {val ? (
+                    <div className="bg-gray-50 rounded-md p-2 shadow-sm inline-block">
+                      <a href={val} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={val}
+                          alt="Légende Répartition des comptes"
+                          className="max-w-[120px] h-auto object-contain"
+                        />
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 italic">NA</p>
+                  )}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      )
+    }
+    }
+    
 }
 
 function AnalyseFormYear({annee}){
   const [data,setData]=useState([])
+  const[error,setError]=useState("")
   const {account}=useAccount()
   console.log("analyse...")
   const fetchData=useCallback(async ()=>{
@@ -139,9 +156,12 @@ function AnalyseFormYear({annee}){
     if (response.ok){
       const donnee=await response.json()
       setData([donnee.noms,donnee.chemins,donnee.bilan,donnee.camemberts,donnee.legende])
+      setError("")
     }
     else{
       console.error("Erreur lors de la récupération des données")
+      const donnees=await response.json()
+      setError(donnees.error)
     }
     }
     catch (err){
@@ -151,7 +171,7 @@ function AnalyseFormYear({annee}){
   },[annee,account])
   useEffect(()=>{fetchData()},[fetchData])
 
-  return (<AnalyseForm data={data} />)
+  return (<AnalyseForm data={data} error={error} />)
 
 }
 

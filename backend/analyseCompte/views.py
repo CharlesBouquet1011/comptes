@@ -82,11 +82,13 @@ def analyseAnnee(request):
             annee=data.get("annee") 
             compte=data.get("compte")
             nonErr,gain,depenses,bilan,chem=a.AnalyseAnnee(annee,compte) #ici l'année est un string
-            chem=Domaine+chem
+            
+            if nonErr=="vide":
+                return JsonResponse({"error":"Aucune donnée cette année ci"},status=404)
             if not nonErr:
-                return JsonResponse({"error": "une erreur est survenue"},status=500)
+                return JsonResponse({"error": "Une erreur est survenue"},status=500)
             else:
-                
+                chem=Domaine+chem
                 camemberts=[f"{chem}/Repartition_Depenses_{annee}.jpg",f"{chem}/Repartition_Gains_{annee}.jpg",None]
                 legende=[f"{chem}/Repartition_Depenses_{annee}_legende.jpg",f"{chem}/Repartition_Gains_{annee}_legende.jpg",None]
                 chemins=[f"{chem}/Depenses_{annee}.jpg",f"{chem}/Gains_{annee}.jpg",f"{chem}/Bilan_{annee}.jpg"]
@@ -96,7 +98,7 @@ def analyseAnnee(request):
             return JsonResponse({"error": "JSON Invalide"},status=406)
         except Exception as e:
             print("Erreur serveur :",e)
-            return JsonResponse({"error":"Erreur serveur"},status=500)
+            return JsonResponse({"error": "Erreur serveur"},status=500)
     
 
 def analyseMois(request):
@@ -116,8 +118,11 @@ def analyseMois(request):
             mois=data.get("mois")
             compte=data.get("compte")
             nonErr,gain,depenses,bilan,chem=a.AnalyseMois(annee,mois,compte)
+            if nonErr=="vide":
+
+                return JsonResponse({"error":"Aucune donnée ce mois ci"},status=404)
             if not nonErr:
-                return JsonResponse({"error": "une erreur est survenue"},status=500)
+                return JsonResponse({"error": "Une erreur est survenue"},status=500)
             chem=Domaine+chem
             if compte is None:
                 compte=""

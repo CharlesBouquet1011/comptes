@@ -34,7 +34,7 @@ def AnalyseAnnee(annee:str,compte)->bool:
         chemin=f"./exports/{compte}{annee}"
         if annee not in os.listdir(f"./exports/{compte}") and len(comptes)==1:
             print("Dossier inexistant")
-            return False,0,0,0,0
+            return "vide",0,0,0,0
     for compte in comptes:
         if annee not in os.listdir(f"./exports/{compte}"): continue
         for dossier in os.listdir(f"./exports/{compte}{annee}"):
@@ -42,7 +42,8 @@ def AnalyseAnnee(annee:str,compte)->bool:
             for fichier in os.listdir(f"./exports/{compte}{annee}/{dossier}"):
                 if ".csv" in fichier: #on garde que les csv
                     dfs.append(m.importer(f"./exports/{compte}{annee}/{dossier}/{fichier}",0))
-    
+    if len(dfs)==0 or all(map(lambda x:x.empty,dfs)):
+        return "vide",0,0,0,0
     df,dfD,chemin2=m.concatener(dfs)
     
     gain,depenses,bilan=traitement(df,chemin,annee,"Annee")
@@ -108,6 +109,8 @@ def AnalyseMois(Annee:str,Mois:str,compte)->bool: #annee YYYY mois mm
             compte="tousComptes/"
             fichiers=[f"./exports/{c}/{Annee}/{MoisAnnee}/{MoisAnnee}.csv" for c in os.listdir("./exports") if "." not in c and c!="tousComptes"]
             dfs=[m.importer(fichier,0) for fichier in fichiers]
+            if all(map(lambda x:x.empty, dfs)):
+                return "vide",0,0,0,0
             df,doublons,cheminDoublon=m.concatener(dfs)
             chemin=f"./exports/tousComptes/{Annee}/{MoisAnnee}"
             os.makedirs(chemin,exist_ok=True)
@@ -115,6 +118,8 @@ def AnalyseMois(Annee:str,Mois:str,compte)->bool: #annee YYYY mois mm
             compte+="/"
             fichier=f"./exports/{compte}{Annee}/{MoisAnnee}/{MoisAnnee}.csv"
             df=m.importer(fichier,0) #ce df est le bilan débit + recettes
+            if df.empty:
+                return "vide",0,0,0,0
             chemin=f"./exports/{compte}{Annee}/{MoisAnnee}"
 
         gain,depenses,bilan=traitement(df,chemin,MoisAnnee,"Mois")

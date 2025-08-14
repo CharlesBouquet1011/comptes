@@ -24,10 +24,12 @@ services:
     image: react:latest
     expose:
       - "3000"
-    restart: unless-stopped
+    restart: no
     user: react
     volumes:
-      - react_build:/app/build
+      - react_build:/output
+    command: sh -c "cp -r /app/build/* /output/"
+    
   
   server:
     container_name: server

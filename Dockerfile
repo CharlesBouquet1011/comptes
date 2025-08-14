@@ -5,12 +5,12 @@ COPY ./backend/SiteComptabilite /app/SiteComptabilite
 COPY ./backend/manage.py /app/manage.py
 COPY ./backend/db.sqlite3 /app/db.sqlite3
 EXPOSE 8000
-RUN pip install --no-cache-dir pandas django xlsxwriter matplotlib numpy Pillow
+RUN pip install --no-cache-dir pandas django xlsxwriter matplotlib numpy Pillow gunicorn
 
 RUN adduser -S django && addgroup -S django
 RUN chown -R django:django /app && chmod 755 -R /app
 USER django
-CMD ["python","manage.py","runserver","0.0.0.0:8000"] 
+CMD ["gunicorn", "SiteComptabilite.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
 #sinon écoute uniquement sur la loopback
 FROM nginx:1.29.0-alpine AS server
 
