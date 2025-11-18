@@ -14,6 +14,7 @@ services:
       - django_DAT:/app/donnees_a_traiter
       - django_doublons:/app/doublons
       - django_export:/app/exports
+      - verification_data:/app/verification
     depends_on:
       - init-volumes
   react:
@@ -50,6 +51,8 @@ services:
       - django_DAT:/app/donnees_a_traiter
       - django_doublons:/app/doublons
       - django_export:/app/exports
+      - verification_data:/app/verification
+
     depends_on:
       - init-volumes
       - react
@@ -60,10 +63,12 @@ services:
       - django_DAT:/app/donnees_a_traiter
       - django_doublons:/app/doublons
       - django_export:/app/export
+      - verification_data:/app/verification
     command: >
       sh -c "
         mkdir -p /app/DatesIncorrectes /app/donnees_a_traiter /app/doublons /app/export /app/exports &&
-        chmod -R 777 /app/DatesIncorrectes /app/donnees_a_traiter /app/doublons /app/export /app/exports
+        chmod -R 777 /app/DatesIncorrectes /app/donnees_a_traiter /app/doublons /app/export /app/exports /app/verification &&
+        chmod -R 777 /app/build
       "
 
 
@@ -74,3 +79,4 @@ volumes:
   django_DAT:
   django_doublons:
   django_export:
+  verification_data:

@@ -34,6 +34,8 @@ EXPOSE 3000
 RUN adduser -S react && addgroup -S react
 RUN chown -R react /app && chmod -R 755 /app
 RUN chown -R react:react /home/react
+RUN mkdir -p /output && chown -R react:react /output
+
 USER react
 
 
